@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Interval {
+  ONE_MINUTE
+  ONE_HOUR
+  ONE_WEEK
+}
+
+model Klines {
+  id           Int       @id @default(autoincrement())
+  market       String
+  interval     Interval  
+  bucket       DateTime
+  close        Float
+  high         Float
+  low          Float
+  open         Float
+  quoteVolume  Float
+  start        DateTime
+  trades       Int
+  volume       Float
+
+  @@index([market, interval, bucket]) // Optimizes queries by interval and time range
+}
