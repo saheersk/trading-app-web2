@@ -14,7 +14,7 @@ app.use(express.json());
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/depth", depthRouter);
 app.use("/api/v1/traders", tradesRouter);
-app.use("/api/v1/k-lines", klineRouter);
+app.use("/api/v1/klines", klineRouter);
 app.use("/api/v1/tickers", tradesRouter);
 
 

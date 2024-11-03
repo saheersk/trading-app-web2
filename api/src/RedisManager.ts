@@ -2,7 +2,6 @@ import { createClient, RedisClientType } from "redis";
 import { MessageFromOrderbook } from "./types";
 import { MessageToEngine } from "./types/to";
 
-
 export class RedisManager {
     private client: RedisClientType;
     private publisher: RedisClientType;
@@ -16,7 +15,7 @@ export class RedisManager {
     }
 
     public static getInstance() {
-        if (!this.instance) {
+        if (!this.instance)  {
             this.instance = new RedisManager();
         }
         return this.instance;
@@ -33,19 +32,8 @@ export class RedisManager {
         });
     }
 
-    // public sendAndAwait<T>(message: MessageToEngine): Promise<T> {
-    //     return new Promise<T>((resolve) => {
-    //         const id = this.getRandomClientId();
-
-    //         this.client.subscribe(id, (message) => {
-    //             this.client.unsubscribe(id);
-    //              resolve(JSON.parse(message));
-    //         })
-    //         this.publisher.lPush("messages", JSON.stringify({ clientId: id, message }));
-    //     })
-    // }
-
     public getRandomClientId() {
         return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
+
 }

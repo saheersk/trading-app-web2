@@ -22,7 +22,7 @@ klineRouter.get("/", async (req: any, res: any) => {
     const endDate = new Date(parseInt(endTime as string, 10) * 1000);
 
     try {
-        const result = await prisma.Klines.findMany({
+        const result = await prisma.klines.findMany({
             where: {
                 market: market as string,
                 interval: selectedInterval,
