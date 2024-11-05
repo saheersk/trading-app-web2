@@ -54,19 +54,24 @@ export const klineRouter = Router();
 //     }
 // });
 
-async function generateKlines(market: any, startTime: any, endTime: any, interval: any) {
-    // Convert to Date objects
-    const startDate = new Date(parseInt(startTime) * 1000);
-    const endDate = new Date(parseInt(endTime) * 1000);
+//@ts-ignore
+const generateKlines = async (market, startTime, endTime, interval) => {
+    // Parse the timestamps
+    const startDate = new Date(Number(startTime));
+    const endDate = new Date(Number(endTime));
 
-    // Fetch raw trade data within the time range
-    // @ts-ignore
+    // Add debug logging for time range
+    console.log("Querying time range:", {
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+        interval: `${interval/1000} seconds`
+    });
+
+    // Now fetch the trades within time range
     const trades = await prisma.trade.findMany({
         where: {
-            market: market,
-            timestamp: {
-                gte: startDate,
-                lte: endDate,
+            stock: {
+                symbol: market, // Nested filter within the related `stock` model
             },
         },
         orderBy: {
@@ -74,87 +79,114 @@ async function generateKlines(market: any, startTime: any, endTime: any, interva
         },
     });
 
-    // Aggregate trades into Klines
-    const klines = [];
-    let currentBucket: any = null;
-    let open: any = null;
-    let high = -Infinity;
-    let low = Infinity;
-    let close: any = null;
-    let volume = 0;
-    let startBucketTime = null;
+    console.log(`Retrieved ${trades.length} trades`);
 
-    trades.forEach((trade: any) => {
-        const tradeTime = trade.timestamp;
+    // Log the time range of retrieved data
+    if (trades.length > 0) {
+        console.log("Data time range:", {
+            firstTrade: trades[0].timestamp,
+            lastTrade: trades[trades.length - 1].timestamp,
+        });
+    }
 
-        // Determine the bucket time
-        const bucketTime = new Date(Math.floor(tradeTime.getTime() / interval) * interval);
+    // Group trades into buckets
+    const klineBuckets = new Map();
+
+    trades.forEach((trade) => {
+        const tradeTime = new Date(trade.timestamp);
+        const bucketStartTime = Math.floor(tradeTime.getTime() / interval) * interval;
         
-        if (!currentBucket || bucketTime > currentBucket) {
-            // If we are moving to a new bucket, save the previous one
-            if (currentBucket) {
-                klines.push({
-                    bucket: currentBucket,
-                    open,
-                    high,
-                    low,
-                    close,
-                    volume,
-                });
-            }
-
-            // Reset for the new bucket
-            currentBucket = bucketTime;
-            open = trade.price;
-            high = trade.price;
-            low = trade.price;
-            close = trade.price;
-            volume = trade.volume;
-            startBucketTime = trade.timestamp;
+        if (!klineBuckets.has(bucketStartTime)) {
+            klineBuckets.set(bucketStartTime, {
+                timestamp: bucketStartTime,
+                open: Number(trade.price),
+                high: Number(trade.price),
+                low: Number(trade.price),
+                close: Number(trade.price),
+                volume: Number(trade.volume),
+                trades: 1
+            });
         } else {
-            // Update current bucket values
-            high = Math.max(high, trade.price);
-            low = Math.min(low, trade.price);
-            close = trade.price;
-            volume += trade.volume;
+            const bucket = klineBuckets.get(bucketStartTime);
+            bucket.high = Math.max(bucket.high, Number(trade.price));
+            bucket.low = Math.min(bucket.low, Number(trade.price));
+            bucket.close = Number(trade.price);
+            bucket.volume += Number(trade.volume);
+            bucket.trades += 1;
         }
     });
 
-    // Push the last bucket if it exists
-    if (currentBucket) {
-        klines.push({
-            bucket: currentBucket,
-            open,
-            high,
-            low,
-            close,
-            volume,
+    // Convert Map to array and sort by timestamp
+    const klines = Array.from(klineBuckets.values())
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+    console.log(`Generated ${klines.length} klines`);
+    
+    // Log sample of first few klines for verification
+    if (klines.length > 0) {
+        console.log("Sample klines:", {
+            first: klines[0],
+            last: klines[klines.length - 1],
+            totalBuckets: klines.length
         });
     }
 
     return klines;
-}
+};
 
+// Router implementation with improved error handling
+klineRouter.get("/", async (req, res) => {
+    const { market, interval, startTime, endTime }: any = req.query;
 
-klineRouter.get("/", async (req: any, res: any) => {
-    const { market, interval, startTime, endTime } = req.query;
+    const symbol = market.split("_")[0];
 
-    const bucketMap: Record<string, number> = {
-        "1m": 60 * 1000, // 1 minute in milliseconds
-        "1h": 60 * 60 * 1000, // 1 hour in milliseconds
-        "1w": 60 * 60 * 1000 * 24 * 7, // 1 week in milliseconds
+    const bucketMap: any = {
+        "1m": 60 * 1000,
+        "5m": 5 * 60 * 1000,
+        "15m": 15 * 60 * 1000,
+        "30m": 30 * 60 * 1000,
+        "1h": 60 * 60 * 1000,
+        "4h": 4 * 60 * 60 * 1000,
+        "1d": 24 * 60 * 60 * 1000,
     };
 
-    const intervalMs = bucketMap[interval as string];
-    if (!intervalMs || !market) {
-        return res.status(400).send('Invalid interval or missing market');
-    }
-
     try {
-        const klines = await generateKlines(market as string, startTime, endTime, intervalMs);
-        res.status(200).json(klines);
-    } catch (err) {
-        console.error("Error generating klines data:", err);
-        res.status(500).send({ error: "Internal server error" });
+        // Input validation
+        if (!symbol) {
+            throw new Error("Market is required");
+        }
+        //@ts-ignore
+        if (!interval || !bucketMap[interval]) {
+            throw new Error(`Invalid interval. Valid intervals are: ${Object.keys(bucketMap).join(', ')}`);
+        }
+
+        if (!startTime || !endTime) {
+            throw new Error("startTime and endTime are required");
+        }
+        //@ts-ignore
+        const intervalMs = bucketMap[interval];
+        const klines = await generateKlines(symbol.toString(), startTime, endTime, intervalMs);
+
+        // Send response with metadata
+        res.status(200).json({
+            success: true,
+            data: {
+                klines,
+                metadata: {
+                    symbol,
+                    interval,
+                    startTime: new Date(Number(startTime)).toISOString(),
+                    endTime: new Date(Number(endTime)).toISOString(),
+                    totalKlines: klines.length
+                }
+            }
+        });
+    } catch (err: any) {
+        console.error("Error generating klines:", err);
+        res.status(500).json({
+            success: false,
+            error: err.message || "Internal server error",
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });

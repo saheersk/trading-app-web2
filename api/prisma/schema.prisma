@@ -7,31 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Klines {
-  id           Int       @id @default(autoincrement())
-  market       String
-  bucket       DateTime
-  close        Float
-  high         Float
-  low          Float
-  open         Float
-  quoteVolume  Float
-  start        DateTime
-  trades       Int
-  volume       Float
+// model Klines {
+//   id           Int       @id @default(autoincrement())
+//   market       String
+//   bucket       DateTime
+//   close        Float
+//   high         Float
+//   low          Float
+//   open         Float
+//   quoteVolume  Float
+//   start        DateTime
+//   trades       Int
+//   volume       Float
 
-  @@index([market, bucket])
-}
+//   @@index([market, bucket])
+// }
 
-model Trade {
-  id         Int       @id @default(autoincrement())
-  market     String
-  timestamp  DateTime
-  price      Float
-  volume     Float
+// model Trade {
+//   id         Int       @id @default(autoincrement())
+//   market     String
+//   timestamp  DateTime
+//   price      Float
+//   volume     Float
 
-  @@index([market, timestamp])
-}
+//   @@index([market, timestamp])
+// }
 
 
 // model Ticker {
@@ -43,4 +43,49 @@ model Trade {
 //   volume          Float?    // Trading volume in the current session
 //   changePercentage Float?    // Percentage change from the last closing price
 //   timestamp       DateTime  @default(now()) // Timestamp of the last update
+// }
+
+model Stock {
+  id               Int           @id @default(autoincrement())
+  symbol           String        @unique  // e.g., "AAPL"
+  name             String        // e.g., "Apple Inc."
+  market           String        // e.g., "NASDAQ"
+  industry         String?       // Optional, e.g., "Technology"
+  outstandingShares Int          // Number of shares available for trading
+  createdAt        DateTime      @default(now())
+
+  // Relations
+  trades           Trade[]
+  // dailySummaries   DailySummary[]
+
+  @@index([symbol])
+}
+
+model Trade {
+  id           Int      @id @default(autoincrement())
+  stockId      Int      // Foreign key to Stock
+  price        Float    // Price per share at trade time
+  volume       Float    // Volume (shares traded) in this transaction
+  timestamp    DateTime // When the trade happened
+
+  // Relations
+  stock        Stock    @relation(fields: [stockId], references: [id])
+
+  @@index([stockId, timestamp])
+}
+
+// model DailySummary {
+//   id          Int      @id @default(autoincrement())
+//   stockId     Int      // Foreign key to Stock
+//   date        DateTime // Summary date (without time component)
+//   openPrice   Float    // Opening price of the day
+//   closePrice  Float    // Closing price of the day
+//   highPrice   Float    // Highest price of the day
+//   lowPrice    Float    // Lowest price of the day
+//   totalVolume Float    // Total volume of trades during the day
+
+//   // Relations
+//   stock       Stock    @relation(fields: [stockId], references: [id])
+
+//   @@index([stockId, date])
 // }
