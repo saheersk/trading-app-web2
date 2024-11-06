@@ -21,72 +21,72 @@ app.use("/api/v1/tickers", tickersRouter);
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function generateRandomTrades(stockId: number, startDate: Date, endDate: Date) {
-    // Define the number of trades per day
-    const minTradesPerDay = 50; // Minimum number of trades per day
-    const maxTradesPerDay = 200; // Maximum number of trades per day
+// async function generateRandomTrades(stockId: number, startDate: Date, endDate: Date) {
+//     // Define the number of trades per day
+//     const minTradesPerDay = 50; // Minimum number of trades per day
+//     const maxTradesPerDay = 200; // Maximum number of trades per day
 
-    // Define price range and volume range for trades
-    const minPrice = 1400; // Minimum price of the stock
-    const maxPrice = 1600; // Maximum price of the stock
-    const minVolume = 100; // Minimum volume per trade
-    const maxVolume = 500; // Maximum volume per trade
+//     // Define price range and volume range for trades
+//     const minPrice = 1400; // Minimum price of the stock
+//     const maxPrice = 1600; // Maximum price of the stock
+//     const minVolume = 100; // Minimum volume per trade
+//     const maxVolume = 500; // Maximum volume per trade
 
-    const trades = [];
+//     const trades = [];
 
-    // Generate data for each day within the date range
-    let currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-        // Randomize the number of trades for the current day
-        const tradesForDay = Math.floor(Math.random() * (maxTradesPerDay - minTradesPerDay + 1)) + minTradesPerDay;
+//     // Generate data for each day within the date range
+//     let currentDate = new Date(startDate);
+//     while (currentDate <= endDate) {
+//         // Randomize the number of trades for the current day
+//         const tradesForDay = Math.floor(Math.random() * (maxTradesPerDay - minTradesPerDay + 1)) + minTradesPerDay;
 
-        // Generate each trade for the current day
-        for (let i = 0; i < tradesForDay; i++) {
-            // Randomize the time within the day
-            const tradeTime = new Date(
-                currentDate.getTime() +
-                Math.floor(Math.random() * (24 * 60 * 60 * 1000)) // Random time within the day in milliseconds
-            );
+//         // Generate each trade for the current day
+//         for (let i = 0; i < tradesForDay; i++) {
+//             // Randomize the time within the day
+//             const tradeTime = new Date(
+//                 currentDate.getTime() +
+//                 Math.floor(Math.random() * (24 * 60 * 60 * 1000)) // Random time within the day in milliseconds
+//             );
 
-            // Generate random price and volume
-            const price = parseFloat((Math.random() * (maxPrice - minPrice) + minPrice).toFixed(2));
-            const volume = parseFloat((Math.random() * (maxVolume - minVolume) + minVolume).toFixed(2));
+//             // Generate random price and volume
+//             const price = parseFloat((Math.random() * (maxPrice - minPrice) + minPrice).toFixed(2));
+//             const volume = parseFloat((Math.random() * (maxVolume - minVolume) + minVolume).toFixed(2));
 
-            // Add the trade to the list
-            trades.push({
-                stockId: stockId,
-                price: price,
-                volume: volume,
-                timestamp: tradeTime,
-            });
-        }
+//             // Add the trade to the list
+//             trades.push({
+//                 stockId: stockId,
+//                 price: price,
+//                 volume: volume,
+//                 timestamp: tradeTime,
+//             });
+//         }
 
-        // Move to the next day
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
+//         // Move to the next day
+//         currentDate.setDate(currentDate.getDate() + 1);
+//     }
 
-    // Insert all trades into the database
-    await prisma.trade.createMany({
-        data: trades,
-    });
+//     // Insert all trades into the database
+//     await prisma.trade.createMany({
+//         data: trades,
+//     });
 
-    console.log(`Inserted ${trades.length} trades for stock ID ${stockId}`);
-}
+//     console.log(`Inserted ${trades.length} trades for stock ID ${stockId}`);
+// }
 
-const stockId = 1; // ID of the stock in the database
-const startDate = new Date("2024-10-01"); // Start date of the data
-const endDate = new Date("2024-10-31"); // End date of the data
+// const stockId = 1; // ID of the stock in the database
+// const startDate = new Date("2024-10-01"); // Start date of the data
+// const endDate = new Date("2024-10-31"); // End date of the data
 
-// Run the data generation
-generateRandomTrades(stockId, startDate, endDate)
-    .then(() => {
-        console.log("Random trade data generation completed");
-        prisma.$disconnect();
-    })
-    .catch((error) => {
-        console.error("Error generating trade data:", error);
-        prisma.$disconnect();
-    });
+// // Run the data generation
+// generateRandomTrades(stockId, startDate, endDate)
+//     .then(() => {
+//         console.log("Random trade data generation completed");
+//         prisma.$disconnect();
+//     })
+//     .catch((error) => {
+//         console.error("Error generating trade data:", error);
+//         prisma.$disconnect();
+//     });
 
 // async function createStock() {
 //     const tataStock = await prisma.stock.create({

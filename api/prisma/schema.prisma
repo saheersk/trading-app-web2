@@ -44,6 +44,10 @@ datasource db {
 //   changePercentage Float?    // Percentage change from the last closing price
 //   timestamp       DateTime  @default(now()) // Timestamp of the last update
 // }
+enum Side {
+  BUY
+  SELL
+}
 
 model Stock {
   id               Int           @id @default(autoincrement())
@@ -67,12 +71,17 @@ model Trade {
   price        Float    // Price per share at trade time
   volume       Float    // Volume (shares traded) in this transaction
   timestamp    DateTime // When the trade happened
+  side         Side     // Buy or Sell side
 
   // Relations
   stock        Stock    @relation(fields: [stockId], references: [id])
 
   @@index([stockId, timestamp])
 }
+
+// Enum to represent buy or sell side
+
+
 
 // model DailySummary {
 //   id          Int      @id @default(autoincrement())

@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 
 const prisma = new PrismaClient();
+
+
 async function get24hMetrics(symbol: string) {
     const now = new Date();
     const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
@@ -78,6 +80,7 @@ async function get24hMetrics(symbol: string) {
         low: null,
         numberOfTrades: tradesIn24h.length,
         lastTradeTime: latestTrade?.timestamp || null,
+        volume24h: 0, // Add 24-hour volume metric
     };
 
     if (latestTrade) {
@@ -89,17 +92,18 @@ async function get24hMetrics(symbol: string) {
     }
 
     if (tradesIn24h.length > 0) {
-        // Calculate high and low from trades in last 24h
+        // Calculate high, low, and total volume from trades in last 24h
         metrics.high = Number(Math.max(...tradesIn24h.map((t) => Number(t.price))));
         metrics.low = Number(Math.min(...tradesIn24h.map((t) => Number(t.price))));
+        metrics.volume24h = tradesIn24h.reduce((acc, trade) => acc + Number(trade.volume), 0); // Total volume in last 24 hours
 
-        // Calculate changes if we have both current and 24h ago prices
+        // Calculate changes if both current and 24h ago prices exist
         if (metrics.latestPrice && metrics.price24hAgo) {
             metrics.pointChange = Number(metrics.latestPrice - metrics.price24hAgo);
             metrics.percentageChange = Number(((metrics.pointChange / metrics.price24hAgo) * 100).toFixed(2));
         }
     }
-
+    
     return metrics;
 }
 
