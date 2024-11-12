@@ -1,4 +1,4 @@
-import express, { application } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { orderRouter } from './routes/order';
 import { depthRouter } from './routes/depth';
@@ -8,19 +8,119 @@ import { tickersRouter } from './routes/ticker';
 
 
 const app = express();
+app.options("*", cors());
 app.use(cors());
 app.use(express.json());
 
 
-app.use("/api/v1/order", orderRouter);
-app.use("/api/v1/depth", depthRouter);
-app.use("/api/v1/trades", tradesRouter);
-app.use("/api/v1/klines", klineRouter);
+app.use("/api/v1/order", cors(), orderRouter);
+app.use("/api/v1/depth", cors(), depthRouter);
+app.use("/api/v1/trades", cors(), tradesRouter);
+app.use("/api/v1/klines", cors(), klineRouter);
 app.use("/api/v1/tickers", tickersRouter);
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
+// const { PrismaClient } = require('@prisma/client');
+// const prisma = new PrismaClient();
+
+// enum Side {
+//     BUY = "BUY",
+//     SELL = "SELL",
+// }
+
+// // Function to generate realistic trade data over one year (1-hour intervals)
+// //@ts-ignore
+// async function generateHourlyTrades(stockId, startDate, endDate) {
+//     const trades = [];
+//     const minPrice = 100;
+//     const maxPrice = 1000;
+//     const minVolume = 10;
+//     const maxVolume = 1000;
+//     const tradeCount = 50 * 24 * 365;  // 1 trade every hour for 1 year (365 days)
+//     const basePrice = 500; // Starting base price for the stock
+//     let currentPrice = basePrice;
+//     const tradeInterval = (endDate - startDate) / tradeCount;
+
+//     for (let i = 0; i < tradeCount; i++) {
+//         const tradeTime = new Date(startDate.getTime() + i * tradeInterval);
+
+//         // Simulate price fluctuation (random fluctuation up to ±20 per hour)
+//         const randomFluctuation = (Math.random() - 0.5) * 20; // Fluctuation up to ±10
+//         currentPrice += randomFluctuation;
+
+//         // Ensure the price stays within the specified range
+//         currentPrice = Math.max(minPrice, Math.min(maxPrice, currentPrice));
+
+//         // Randomize volume within the specified range
+//         const volume = Math.floor(Math.random() * (maxVolume - minVolume) + minVolume);
+
+//         // Randomize buy/sell side
+//         const side = Math.random() < 0.5 ? Side.BUY : Side.SELL;
+
+//         // Create trade data
+//         trades.push({
+//             stockId: stockId,
+//             price: parseFloat(currentPrice.toFixed(2)),
+//             volume: volume,
+//             timestamp: tradeTime,
+//             side: side,
+//         });
+//     }
+
+//     // Insert trades into the database
+//     await prisma.trade.createMany({
+//         data: trades,
+//     });
+
+//     console.log(`Generated ${tradeCount} trades for stock ID ${stockId}`);
+// }
+
+// // Main function to create the stock if it doesn't exist and generate trades
+// async function main() {
+//     let tataStock = await prisma.stock.findUnique({
+//         where: { symbol: "TATA" },
+//     });
+
+//     if (!tataStock) {
+//         tataStock = await prisma.stock.create({
+//             data: {
+//                 symbol: "TATA",
+//                 name: "Tata Group",
+//                 market: "NSE",
+//                 industry: "Diversified",
+//                 outstandingShares: 5000000,
+//             },
+//         });
+//         console.log('Created Stock:', tataStock);
+//     }
+
+//     const startDate = new Date();
+//     startDate.setFullYear(startDate.getFullYear() - 1); // Start date set to one year ago
+//     const endDate = new Date(); // End date as today
+
+//     await generateHourlyTrades(tataStock.id, startDate, endDate);
+// }
+
+// main()
+//     .catch((error) => {
+//         console.error("Error:", error);
+//     })
+//     .finally(async () => {
+//         await prisma.$disconnect();
+//     });
+
+// const { PrismaClient } = require('@prisma/client');
+// const prisma = new PrismaClient();
+
+
+// enum Side {
+//     BUY = "BUY",
+//     SELL = "SELL",
+// }
+
+
+  
+// //@ts-ignore
 // async function generateRandomTrades(stockId: number, startDate: Date, endDate: Date) {
 //     // Define the number of trades per day
 //     const minTradesPerDay = 50; // Minimum number of trades per day
@@ -105,55 +205,57 @@ const prisma = new PrismaClient();
 //     .catch(e => console.error(e))
 //     .finally(async () => await prisma.$disconnect());
 
-    // @ts-ignore
-    // async function generateRandomTrades(stockId) {
-    //     const startDate = new Date();
-    //     const endDate = new Date();
-    //     endDate.setMonth(endDate.getMonth() + 3); // 3 months from now
+//    // @ts-ignore
+//     async function generateRandomTrades(stockId) {
+//         const startDate = new Date();
+//         const endDate = new Date();
+//         endDate.setMonth(endDate.getMonth() + 3); // 3 months from now
     
-    //     const basePrice = 1500; // Example base price for TATA stock
-    //     const tradeCount = 500; // Number of trades to generate
-    // //@ts-ignore
+//         const basePrice = 1500; // Example base price for TATA stock
+//         const tradeCount = 500; // Number of trades to generate
+//     //@ts-ignore
 
-    //     const tradeInterval = (endDate - startDate) / tradeCount; // Time interval between trades
+//         const tradeInterval = (endDate - startDate) / tradeCount; // Time interval between trades
     
-    //     for (let i = 0; i < tradeCount; i++) {
-    //         const tradeTime = new Date(startDate.getTime() + i * tradeInterval);
-    //         const priceFluctuation = (Math.random() - 0.5) * 20; // Random fluctuation up to 20
-    //         const price = Math.max(0, basePrice + priceFluctuation); // Ensure price doesn't go below 0
-    //         const volume = Math.random() * 1000 + 1; // Random volume between 1 and 1000
+//         for (let i = 0; i < tradeCount; i++) {
+//             const tradeTime = new Date(startDate.getTime() + i * tradeInterval);
+//             const priceFluctuation = (Math.random() - 0.5) * 20; // Random fluctuation up to 20
+//             const price = Math.max(0, basePrice + priceFluctuation); // Ensure price doesn't go below 0
+//             const volume = Math.random() * 1000 + 1; // Random volume between 1 and 1000
+//             const side = Math.random() < 0.5 ? Side.BUY : Side.SELL;
     
-    //         await prisma.trade.create({
-    //             data: {
-    //                 stockId,
-    //                 price,
-    //                 volume,
-    //                 timestamp: tradeTime,
-    //             },
-    //         });
-    //     }
+//             await prisma.trade.create({
+//                 data: {
+//                     stockId,
+//                     price,
+//                     volume,
+//                     timestamp: tradeTime,
+//                     side: side
+//                 },
+//             });
+//         }
     
-    //     console.log(`Generated ${tradeCount} trades for stock ID ${stockId}`);
-    // }
+//         console.log(`Generated ${tradeCount} trades for stock ID ${stockId}`);
+//     }
     
-    // async function main() {
-    //     // Create TATA stock first
-    //     const tataStock = await prisma.stock.findUnique({
-    //         where: { symbol: "TATA" },
-    //     });
+//     async function main() {
+//         // Create TATA stock first
+//         const tataStock = await prisma.stock.findUnique({
+//             where: { symbol: "TATA" },
+//         });
     
-    //     if (tataStock) {
-    //         await generateRandomTrades(tataStock.id);
-    //     } else {
-    //         console.log('Stock TATA not found.');
-    //     }
-    // }
+//         if (tataStock) {
+//             await generateRandomTrades(tataStock.id);
+//         } else {
+//             console.log('Stock TATA not found.');
+//         }
+//     }
     
-    // main()
-    //     .catch(e => console.error(e))
-    //     .finally(async () => await prisma.$disconnect());
+//     main()
+//         .catch(e => console.error(e))
+//         .finally(async () => await prisma.$disconnect());
 
-    // async function generateRandomTrades(stockId) {
+    // async function generateRandomTrades(stockId: any) {
     //     // Generate trades from 3 months ago to now (instead of now to 3 months future)
     //     const endDate = new Date();
     //     const startDate = new Date();
@@ -174,12 +276,14 @@ const prisma = new PrismaClient();
     //         const priceFluctuation = (Math.random() - 0.5) * 20;
     //         const price = Math.max(0, basePrice + priceFluctuation);
     //         const volume = Math.random() * 1000 + 1;
+    //         const side = Math.random() < 0.5 ? Side.BUY : Side.SELL;
     
     //         trades.push({
     //             stockId,
     //             price,
     //             volume,
     //             timestamp: tradeTime,
+    //             side: side
     //         });
     //     }
     

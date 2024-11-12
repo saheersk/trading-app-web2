@@ -25,6 +25,7 @@ async function getLast20TradesByStockId(symbol: string) {
                     symbol: true, // Optionally include the stock symbol if needed
                 },
             },
+            side: true
         },
     });
 
@@ -34,6 +35,7 @@ async function getLast20TradesByStockId(symbol: string) {
         price: trade.price,
         volume: trade.volume,
         timestamp: trade.timestamp,
+        side: trade.side
     }));
 }
 

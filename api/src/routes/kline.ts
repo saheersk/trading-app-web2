@@ -123,13 +123,13 @@ const generateKlines = async (market, startTime, endTime, interval) => {
     console.log(`Generated ${klines.length} klines`);
     
     // Log sample of first few klines for verification
-    if (klines.length > 0) {
-        console.log("Sample klines:", {
-            first: klines[0],
-            last: klines[klines.length - 1],
-            totalBuckets: klines.length
-        });
-    }
+    // if (klines.length > 0) {
+    //     console.log("Sample klines:", {
+    //         first: klines[0],
+    //         last: klines[klines.length - 1],
+    //         totalBuckets: klines.length
+    //     });
+    // }
 
     return klines;
 };

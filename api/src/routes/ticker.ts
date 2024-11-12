@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 
 const prisma = new PrismaClient();
-
+export const tickersRouter = Router();
 
 async function get24hMetrics(symbol: string) {
     const now = new Date();
@@ -108,13 +108,15 @@ async function get24hMetrics(symbol: string) {
 }
 
 // Router implementation with improved error handling
-export const tickersRouter = Router();
+
 
 //@ts-ignore
 tickersRouter.get("/", async (req, res) => {
     const { market }: any = req.query;
 
     const symbol = market.split("_")[0];
+
+    console.log("symbol: ", symbol, "====================")
 
     if (!symbol) {
         return res.status(400).json({ error: "Missing Market parameter" });
