@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Depth, KLine, Ticker, Trade } from "./types";
 
-// const BASE_URL = "https://exchange-proxy.100xdevs.com/api/v1";
+
 const BASE_URL = "http://localhost:3000/api/v1";
 
 export async function getTicker(market: string): Promise<Ticker> {
@@ -18,8 +18,8 @@ export async function getTicker(market: string): Promise<Ticker> {
 }
 
 export async function getTickers(): Promise<Ticker[]> {
-    const response = await axios.get(`${BASE_URL}/tickers/?market=TATA_INR`);
-    // console.log(response.data.data, "ticker Response============");
+    const response = await axios.get(`${BASE_URL}/tickers?market=TATA_INR`);
+    console.log(response.data.data, "ticker Response============");
     return response.data.data;
 }
 
@@ -31,14 +31,14 @@ export async function getDepth(market: string): Promise<Depth> {
     return response.data;
 }
 export async function getTrades(market: string): Promise<Trade[]> {
-    const response = await axios.get(`${BASE_URL}/trades/?market=TATA_INR`);
+    const response = await axios.get(`${BASE_URL}/trades?market=TATA_INR`);
     console.log(response.data, "trades Response============");
     
     return response.data;
 }
 
 export async function getKlines(market: string, interval: string, startTime: number, endTime: number): Promise<KLine[]> {
-    const response = await axios.get(`${BASE_URL}/klines/?market=${market}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`);
+    const response = await axios.get(`${BASE_URL}/klines?market=${market}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`);
     // console.log(response.data.data, "klines Response============");
 
     const data: KLine[] = response.data.data.klines;

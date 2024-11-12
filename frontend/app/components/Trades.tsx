@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { getTrades } from "../utils/httpClient";
 
-
+const enum Side {
+    SELL = "SELL",
+    BUY = "BUY"
+}
 interface Trade {
     price: string;
     volume: string;
     timestamp: string;
+    side: "BUY" | "SELL";
 }
 
 export default function Trades({ market }: { market: string }) {
@@ -34,14 +38,18 @@ function TradesHeader() {
     );
 }
 
-
 function TradesTable({ trades }: { trades: Trade[] }) {
     return (
         <div>
             {trades.map((trade, index) => (
-                <div key={index} className="flex justify-between text-xs py-1">
+                <div
+                    key={index}
+                    className={`flex justify-between text-xs py-1 ${
+                        trade.side === "BUY" ? "bg-green-100" : "bg-red-100"
+                    }`}
+                >
                     <div className="text-white">{trade.price}</div>
-                    <div className="text-slate-500">{trade.volume.toFixed(2)}</div>
+                    <div className="text-slate-500">{Number(trade.volume)}</div>
                     <div className="text-slate-500">{new Date(trade.timestamp).toLocaleTimeString()}</div>
                 </div>
             ))}
