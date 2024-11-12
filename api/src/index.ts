@@ -5,6 +5,7 @@ import { depthRouter } from './routes/depth';
 import { tradesRouter } from './routes/trades';
 import { klineRouter } from './routes/kline';
 import { tickersRouter } from './routes/ticker';
+import { marketRouter } from './routes/market';
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use("/api/v1/depth", cors(), depthRouter);
 app.use("/api/v1/trades", cors(), tradesRouter);
 app.use("/api/v1/klines", cors(), klineRouter);
 app.use("/api/v1/tickers", tickersRouter);
+app.use("/api/v1/markets", marketRouter);
 
 
 // const { PrismaClient } = require('@prisma/client');
