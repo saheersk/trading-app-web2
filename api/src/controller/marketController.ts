@@ -2,6 +2,19 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
+function formatMarketCap(value: number): string {
+    if (value >= 1_000_000_000) {
+        return (value / 1_000_000_000).toFixed(1) + ' B';
+    } else if (value >= 1_000_000) {
+        return (value / 1_000_000).toFixed(1) + ' M';
+    } else if (value >= 1_000) {
+        return (value / 1_000).toFixed(1) + ' K';
+    } else {
+        return value.toString();
+    }
+}
+
 // Function to calculate 24-hour metrics for a specific stock symbol
 export async function get24hMetrics(symbol: string) {
     const now = new Date();
@@ -9,6 +22,12 @@ export async function get24hMetrics(symbol: string) {
 
     const totalTrades = await prisma.trade.count({
         where: { stock: { symbol: symbol } },
+    });
+
+    const stockData = await prisma.stock.findUnique({
+        where: { symbol: symbol },
+        //@ts-ignore
+        select: { outstandingShares: true },
     });
 
     const latestTrade = await prisma.trade.findFirst({
@@ -42,6 +61,7 @@ export async function get24hMetrics(symbol: string) {
         numberOfTrades: tradesIn24h.length,
         lastTradeTime: latestTrade?.timestamp || null,
         volume24h: 0,
+        marketCap: null,
     };
 
     if (metrics.latestPrice && metrics.price24hAgo) {
@@ -58,6 +78,15 @@ export async function get24hMetrics(symbol: string) {
 
         metrics.low = Math.min(...tradesIn24h.map((t) => t.price));
         metrics.volume24h = tradesIn24h.reduce((acc, trade) => acc + trade.volume, 0);
+    }
+
+    //@ts-ignore
+    if (metrics.latestPrice && stockData?.outstandingShares) {
+        //@ts-ignore
+        const rawMarketCap =  metrics.latestPrice * stockData.outstandingShares;
+        console.log(rawMarketCap)
+        //@ts-ignore
+        metrics.marketCap = formatMarketCap(rawMarketCap);
     }
 
     return metrics;

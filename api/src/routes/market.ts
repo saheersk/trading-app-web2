@@ -15,7 +15,7 @@ marketRouter.get("/", async (req: Request, res: Response) => {
         });
 
         // Initialize response object
-        const response: any[] = [];
+        // const response: any = [];
 
         // Fetch stocks and metrics for each market
         for (const { market } of markets) {
@@ -31,10 +31,10 @@ marketRouter.get("/", async (req: Request, res: Response) => {
                 })
             );
 
-            response.push({ market, stocks: stocksWithMetrics });
+            const response: any = stocksWithMetrics 
+            res.json(response);
         }
 
-        res.json(response);
     } catch (error) {
         console.error("Error fetching markets and metrics:", error);
         res.status(500).json({ error: "An error occurred while fetching market data." });
