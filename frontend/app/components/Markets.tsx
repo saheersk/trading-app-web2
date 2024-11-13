@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Ticker } from "../utils/types";
-import { getTickers } from "../utils/httpClient";
+import { getMarket, getTickers } from "../utils/httpClient";
 import { useRouter } from "next/navigation";
 
 export const Markets = () => {
   const [tickers, setTickers] = useState<any>();
 
   useEffect(() => {
-    getTickers().then((m) => setTickers(m));
+    getMarket().then((m) => setTickers(m));
   }, []);
 
   return (
