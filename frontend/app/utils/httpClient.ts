@@ -47,7 +47,7 @@ export async function getKlines(market: string, interval: string, startTime: num
 
 export async function getMarket(): Promise<any> {
     const response = await axios.get(`${BASE_URL}/markets`);
-    // console.log(response.data.data, "klines Response============");
-    const data: any = response.data.data;
+    console.log(response.data, "klines Response============");
+    const data: any = response.data;
     return data;
 }

@@ -6,11 +6,13 @@ import { getMarket, getTickers } from "../utils/httpClient";
 import { useRouter } from "next/navigation";
 
 export const Markets = () => {
-  const [tickers, setTickers] = useState<any>();
+  const [tickers, setTickers] = useState<any>([]);
 
   useEffect(() => {
     getMarket().then((m) => setTickers(m));
   }, []);
+
+  console.log(tickers, "================================markets");
 
   return (
     <div className="flex flex-col flex-1 max-w-[1280px] w-full">
@@ -64,17 +66,17 @@ function MarketRow({ market }: { market: any }) {
         </div>
       </td>
       <td className="px-1 py-3">
-        <p className="text-base font-medium tabular-nums">{market.lastPrice}</p>
+        <p className="text-base font-medium tabular-nums">{market.metrics.latestPrice}</p>
       </td>
       <td className="px-1 py-3">
-        <p className="text-base font-medium tabular-nums">{market.high}</p>
+        <p className="text-base font-medium tabular-nums">{market.metrics.marketCap }</p>
       </td>
       <td className="px-1 py-3">
-        <p className="text-base font-medium tabular-nums">{market.volume}</p>
+        <p className="text-base font-medium tabular-nums">{market.metrics.volume24h}</p>
       </td>
       <td className="px-1 py-3">
         <p className="text-base font-medium tabular-nums text-greenText">
-          {Number(market.percentageChange)?.toFixed(3)} %
+          {Number(market.metrics.percentageChange)?.toFixed(2)} %
         </p>
       </td> 
     </tr>
