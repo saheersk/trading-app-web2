@@ -45,6 +45,7 @@ export class Engine {
         try {
             if (process.env.WITH_SNAPSHOT){
                 snapshot = fs.readFileSync("./snapshot.json");
+                console.log(snapshot, "====================snapshot.json================");
             }
         } catch (e) {
             console.log("No snapshot found");
@@ -52,7 +53,11 @@ export class Engine {
 
         if (snapshot) {
             const snapshotSnapshot = JSON.parse(snapshot.toString());
+            console.log(snapshotSnapshot, "====================snapshotSnapshot================");
+
             this.orderBooks = snapshotSnapshot.orderBooks.map((o: any) => new Orderbook(o.baseAsset, o.bids, o.asks, o.lastTradeId, o.currentPrice));
+            console.log(this.orderBooks, "====================orderBooks================");
+
             this.balances = new Map(snapshotSnapshot.balances);
         } else {
             this.orderBooks = [new Orderbook(`TATA`, [], [], 0, 0)];
@@ -75,6 +80,7 @@ export class Engine {
         switch (message.type) {
             case CREATE_ORDER:
                 try {
+                    console.log("create order===================")
                     const { executedQty, fills, orderId } = this.createOrder(message.data.market, message.data.price, message.data.quantity, message.data.side, message.data.userId);
                     RedisManager.getInstance().sendToApi(clientId, {
                         type: "ORDER_PLACED",
@@ -222,13 +228,18 @@ export class Engine {
     }
 
     createOrder(market: string, price: string, quantity: string, side: "buy" | "sell", userId: string) {
+        console.log(market, "======================market");
 
-        const orderbook = this.orderBooks.find(o => o.ticker() === market)
+        let orderbook = this.orderBooks.find(o => o.ticker() === market)
         const baseAsset = market.split("_")[0];
         const quoteAsset = market.split("_")[1];
 
+        console.log(orderbook, "inside create order====================")
+
         if (!orderbook) {
-            throw new Error("No orderbook found");
+            const newOrderbook = new Orderbook(baseAsset, [], [], 0, 0);
+            this.addOrderbook(newOrderbook);  
+            orderbook = this.orderBooks.find(o => o.ticker() === market);
         }
 
         this.checkAndLockFunds(baseAsset, quoteAsset, side, userId, quoteAsset, price, quantity);
@@ -242,8 +253,11 @@ export class Engine {
             side,
             userId
         }
-        
+        console.log(order, "create order with ======================")
+    
         const { fills, executedQty } = orderbook.addOrder(order);
+        console.log(fills, executedQty, "create order fill execute ======================")
+
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
         
@@ -252,7 +266,9 @@ export class Engine {
         this.publishWsDepthUpdates(fills, price, side, market);
         this.publishWsTrades(fills, userId, market);
 
-        this.publishTickerUpdate(market, price, fills);
+        // this.publishTickerUpdate(market, price, fills);
+
+        console.log("create last======================")
         
         return { executedQty, fills, orderId: order.orderId };
         // fills.forEach(fill => {
@@ -447,6 +463,7 @@ export class Engine {
     }
 
     checkAndLockFunds(baseAsset: string, quoteAsset: string, side: "buy" | "sell", userId: string, asset: string, price: string, quantity: string) {
+        console.log("checkAndLockFunds", quoteAsset, side, userId, asset, "===================================")
         if (side === "buy") {
             if ((this.balances.get(userId)?.[quoteAsset]?.available || 0) < Number(quantity) * Number(price)) {
                 throw new Error("Insufficient funds");
