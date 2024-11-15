@@ -254,8 +254,8 @@ export class Engine {
             userId
         }
         console.log(order, "create order with ======================")
-    
-        const { fills, executedQty } = orderbook.addOrder(order);
+        
+        const { fills, executedQty } = orderbook ? orderbook.addOrder(order) : {fills: [], executedQty: 0};
         console.log(fills, executedQty, "create order fill execute ======================")
 
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
