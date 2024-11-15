@@ -60,6 +60,8 @@ model Stock {
 
   // Relations
   trades           Trade[]
+  orderHistory OrderHistory[]
+  positions        Position[] 
   // dailySummaries   DailySummary[]
 
   @@index([symbol])
@@ -79,9 +81,57 @@ model Trade {
   @@index([stockId, timestamp])
 }
 
+
+model User {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  username     String?     // Optional: Some users might not have a username.
+  passwordHash String?     // Optional: Password might not exist for OAuth users.
+  googleId     String?     // Google user ID for tracking.
+  image        String?     // Profile picture URL.
+  createdAt    DateTime    @default(now())
+
+  // Relations
+  orderHistory OrderHistory[]
+  positions    Position[]
+
+  @@index([email])
+}
+
+model OrderHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      // Foreign key to User
+  stockId   Int      // Foreign key to Stock
+  side      Side     // Buy or Sell
+  price     Float    // Price per share for the order
+  volume    Float    // Volume (shares) for the order
+  status    String   // Status of the order, e.g., "Completed", "Pending", "Canceled"
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  stock     Stock    @relation(fields: [stockId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model Position {
+  id           Int      @id @default(autoincrement())
+  userId       Int      // Foreign key to User
+  stockId      Int      // Foreign key to Stock
+  averagePrice Float    // Average price of the user's position in the stock
+  volume       Float    // Number of shares currently held
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
+  stock        Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([userId, stockId]) // Ensures unique positions per user-stock pair
+}
+
+
 // Enum to represent buy or sell side
-
-
 
 // model DailySummary {
 //   id          Int      @id @default(autoincrement())
