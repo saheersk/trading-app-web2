@@ -53,6 +53,7 @@ model User {
   passwordHash String?
   googleId     String?
   image        String?
+  balance      Int         @default(1000000000)
   createdAt    DateTime    @default(now())
 
   orderHistory OrderHistory[]
