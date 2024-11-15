@@ -6,92 +6,55 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// model Klines {
-//   id           Int       @id @default(autoincrement())
-//   market       String
-//   bucket       DateTime
-//   close        Float
-//   high         Float
-//   low          Float
-//   open         Float
-//   quoteVolume  Float
-//   start        DateTime
-//   trades       Int
-//   volume       Float
-
-//   @@index([market, bucket])
-// }
-
-// model Trade {
-//   id         Int       @id @default(autoincrement())
-//   market     String
-//   timestamp  DateTime
-//   price      Float
-//   volume     Float
-
-//   @@index([market, timestamp])
-// }
-
-
-// model Ticker {
-//   id              Int       @id @default(autoincrement())
-//   market          String    @unique // e.g., "TATA_INR", "BTC_USD"
-//   lastPrice       Float     // Current price of the ticker
-//   highPrice       Float?    // Highest price in the current trading session
-//   lowPrice        Float?    // Lowest price in the current trading session
-//   volume          Float?    // Trading volume in the current session
-//   changePercentage Float?    // Percentage change from the last closing price
-//   timestamp       DateTime  @default(now()) // Timestamp of the last update
-// }
 enum Side {
   BUY
   SELL
 }
 
+enum OrderStatus {
+  COMPLETED
+  PENDING
+  CANCELED
+}
+
 model Stock {
   id               Int           @id @default(autoincrement())
-  symbol           String        @unique  // e.g., "AAPL"
-  name             String        // e.g., "Apple Inc."
-  market           String        // e.g., "NASDAQ"
-  industry         String?       // Optional, e.g., "Technology"
-  outstandingShares Int          // Number of shares available for trading
+  symbol           String        @unique
+  name             String
+  market           String
+  industry         String?
+  outstandingShares Int
   createdAt        DateTime      @default(now())
 
-  // Relations
   trades           Trade[]
-  orderHistory OrderHistory[]
-  positions        Position[] 
-  // dailySummaries   DailySummary[]
+  orderHistory     OrderHistory[]
+  positions        Position[]
 
   @@index([symbol])
 }
 
 model Trade {
   id           Int      @id @default(autoincrement())
-  stockId      Int      // Foreign key to Stock
-  price        Float    // Price per share at trade time
-  volume       Float    // Volume (shares traded) in this transaction
-  timestamp    DateTime // When the trade happened
-  side         Side     // Buy or Sell side
+  stockId      Int
+  price        Float
+  volume       Float
+  timestamp    DateTime
+  side         Side
 
-  // Relations
   stock        Stock    @relation(fields: [stockId], references: [id])
 
   @@index([stockId, timestamp])
 }
 
-
 model User {
   id           Int         @id @default(autoincrement())
   email        String      @unique
-  username     String?     // Optional: Some users might not have a username.
-  passwordHash String?     // Optional: Password might not exist for OAuth users.
-  googleId     String?     // Google user ID for tracking.
-  image        String?     // Profile picture URL.
+  username     String?
+  passwordHash String?
+  googleId     String?
+  image        String?
   createdAt    DateTime    @default(now())
 
-  // Relations
   orderHistory OrderHistory[]
   positions    Position[]
 
@@ -99,52 +62,31 @@ model User {
 }
 
 model OrderHistory {
-  id        Int      @id @default(autoincrement())
-  userId    Int      // Foreign key to User
-  stockId   Int      // Foreign key to Stock
-  side      Side     // Buy or Sell
-  price     Float    // Price per share for the order
-  volume    Float    // Volume (shares) for the order
-  status    String   // Status of the order, e.g., "Completed", "Pending", "Canceled"
-  createdAt DateTime @default(now())
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  stockId   Int
+  side      Side
+  price     Decimal
+  volume    Decimal
+  status    OrderStatus
+  createdAt DateTime    @default(now())
 
-  // Relations
-  user      User     @relation(fields: [userId], references: [id])
-  stock     Stock    @relation(fields: [stockId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+  stock     Stock       @relation(fields: [stockId], references: [id])
 
   @@index([userId, createdAt])
 }
 
 model Position {
   id           Int      @id @default(autoincrement())
-  userId       Int      // Foreign key to User
-  stockId      Int      // Foreign key to Stock
-  averagePrice Float    // Average price of the user's position in the stock
-  volume       Float    // Number of shares currently held
+  userId       Int
+  stockId      Int
+  averagePrice Float
+  volume       Float
   createdAt    DateTime @default(now())
 
-  // Relations
   user         User     @relation(fields: [userId], references: [id])
   stock        Stock    @relation(fields: [stockId], references: [id])
 
-  @@unique([userId, stockId]) // Ensures unique positions per user-stock pair
+  @@unique([userId, stockId])
 }
-
-
-// Enum to represent buy or sell side
-
-// model DailySummary {
-//   id          Int      @id @default(autoincrement())
-//   stockId     Int      // Foreign key to Stock
-//   date        DateTime // Summary date (without time component)
-//   openPrice   Float    // Opening price of the day
-//   closePrice  Float    // Closing price of the day
-//   highPrice   Float    // Highest price of the day
-//   lowPrice    Float    // Lowest price of the day
-//   totalVolume Float    // Total volume of trades during the day
-
-//   // Relations
-//   stock       Stock    @relation(fields: [stockId], references: [id])
-
-//   @@index([stockId, date])
-// }
