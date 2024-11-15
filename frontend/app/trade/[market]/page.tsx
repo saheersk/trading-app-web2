@@ -39,7 +39,7 @@ import { useState } from "react";
 
 export default function Page() {
     const { market } = useParams();
-    const [activeTab, setActiveTab] = useState<"trades" | "depth">("trades");
+    const [activeTab, setActiveTab] = useState<"trades" | "depth">("depth");
 
     return (
         <div className="flex flex-row flex-1">
@@ -51,6 +51,14 @@ export default function Page() {
                     </div>
                         <div className="flex flex-col w-[250px] overflow-hidden">
                             <div className="flex border-b border-slate-800">
+                            <button
+                                    className={`flex-1 py-2 ${
+                                        activeTab === "depth" ? "bg-slate-800 text-white" : "text-slate-500"
+                                    }`}
+                                    onClick={() => setActiveTab("depth")}
+                                >
+                                    Depth
+                                </button>
                                 <button
                                     className={`flex-1 py-2 ${
                                         activeTab === "trades" ? "bg-slate-800 text-white" : "text-slate-500"
@@ -59,14 +67,7 @@ export default function Page() {
                                 >
                                     Trades
                                 </button>
-                                <button
-                                    className={`flex-1 py-2 ${
-                                        activeTab === "depth" ? "bg-slate-800 text-white" : "text-slate-500"
-                                    }`}
-                                    onClick={() => setActiveTab("depth")}
-                                >
-                                    Depth
-                                </button>
+                                
                             </div>
                             {activeTab === "trades" ? (
                                 <Trades market={market as string} />

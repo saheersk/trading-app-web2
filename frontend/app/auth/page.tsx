@@ -1,17 +1,13 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 
 export default function Login() {
-    // const router = useRouter();
     const { data: session } = useSession();
 
 
     const handleLogin = async () => {
-        const result = await signIn("google"); // Use the authentication method you are using
-    
-   
+        const result = await signIn("google"); 
       };
 
     if (session?.user) {
