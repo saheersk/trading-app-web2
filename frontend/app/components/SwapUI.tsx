@@ -2,17 +2,18 @@
 import axios from "axios";
 import { useState } from "react";
 import { BASE_URL } from "../utils/SignalingManager";
+import Image from "next/image";
 
 export function SwapUI({ market }: { market: string }) {
-    const [amount, setAmount] = useState('');
-    const [activeTab, setActiveTab] = useState('buy');
-    const [type, setType] = useState('limit');
-    const [price, setPrice] = useState(''); // State for price
-    const [quantity, setQuantity] = useState(''); // State for quantity
-    const userId = 'exampleUserId'; // Replace with actual user ID
+    const [amount, setAmount] = useState("");
+    const [activeTab, setActiveTab] = useState("buy");
+    const [type, setType] = useState("limit");
+    const [price, setPrice] = useState(""); // State for price
+    const [quantity, setQuantity] = useState(""); // State for quantity
+    const userId = "exampleUserId"; // Replace with actual user ID
 
     const submitOrder = async () => {
-        const side = activeTab === 'buy' ? 'buy' : 'sell';
+        const side = activeTab === "buy" ? "buy" : "sell";
 
         try {
             const response = await axios.post(`${BASE_URL}/api/v1/order`, {
@@ -20,7 +21,7 @@ export function SwapUI({ market }: { market: string }) {
                 price,
                 quantity,
                 side,
-                userId
+                userId,
             });
             console.log("Order created successfully:", response.data);
         } catch (error) {
@@ -63,7 +64,13 @@ export function SwapUI({ market }: { market: string }) {
                                     />
                                     <div className="flex flex-row absolute right-1 top-1 p-2">
                                         <div className="relative">
-                                            <img src="/usdc.webp" className="w-6 h-6" />
+                                            <Image
+                                                src="/assets/label.png"
+                                                width={24}
+                                                height={24}
+                                                alt="Picture of the author"
+                                                className="w-6 h-6 invert"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -82,7 +89,13 @@ export function SwapUI({ market }: { market: string }) {
                                 />
                                 <div className="flex flex-row absolute right-1 top-1 p-2">
                                     <div className="relative">
-                                        <img src="/sol.webp" className="w-6 h-6" />
+                                        <Image
+                                            src="/assets/boxes.png"
+                                            width={24}
+                                            height={24}
+                                            alt="Picture of the author"
+                                            className="w-6 h-6 invert"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -93,7 +106,7 @@ export function SwapUI({ market }: { market: string }) {
                         className="font-semibold focus:ring-blue-200 focus:none focus:outline-none text-center h-12 rounded-xl text-base px-4 py-2 my-4 bg-greenPrimaryButtonBackground text-greenPrimaryButtonText active:scale-98"
                         onClick={submitOrder}
                     >
-                        {activeTab === 'buy' ? 'Buy' : 'Sell'}
+                        {activeTab === "buy" ? "Buy" : "Sell"}
                     </button>
                 </div>
             </div>
@@ -101,34 +114,64 @@ export function SwapUI({ market }: { market: string }) {
     );
 }
 
-function LimitButton({ type, setType }: { type: string, setType: any }) {
-    return <div className="flex flex-col cursor-pointer justify-center py-2" onClick={() => setType('limit')}>
-    <div className={`text-sm font-medium py-1 border-b-2 ${type === 'limit' ? "border-accentBlue text-baseTextHighEmphasis" : "border-transparent text-baseTextMedEmphasis hover:border-baseTextHighEmphasis hover:text-baseTextHighEmphasis"}`}>
-        Limit
-    </div>
-</div>
+function LimitButton({ type, setType }: { type: string; setType: any }) {
+    return (
+        <div className="flex flex-col cursor-pointer justify-center py-2" onClick={() => setType("limit")}>
+            <div
+                className={`text-sm font-medium py-1 border-b-2 ${
+                    type === "limit"
+                        ? "border-accentBlue text-baseTextHighEmphasis"
+                        : "border-transparent text-baseTextMedEmphasis hover:border-baseTextHighEmphasis hover:text-baseTextHighEmphasis"
+                }`}
+            >
+                Limit
+            </div>
+        </div>
+    );
 }
 
-function MarketButton({ type, setType }: { type: string, setType: any }) {
-    return  <div className="flex flex-col cursor-pointer justify-center py-2" onClick={() => setType('market')}>
-    <div className={`text-sm font-medium py-1 border-b-2 ${type === 'market' ? "border-accentBlue text-baseTextHighEmphasis" : "border-b-2 border-transparent text-baseTextMedEmphasis hover:border-baseTextHighEmphasis hover:text-baseTextHighEmphasis"} `}>
-        Market
-    </div>
-    </div>
+function MarketButton({ type, setType }: { type: string; setType: any }) {
+    return (
+        <div className="flex flex-col cursor-pointer justify-center py-2" onClick={() => setType("market")}>
+            <div
+                className={`text-sm font-medium py-1 border-b-2 ${
+                    type === "market"
+                        ? "border-accentBlue text-baseTextHighEmphasis"
+                        : "border-b-2 border-transparent text-baseTextMedEmphasis hover:border-baseTextHighEmphasis hover:text-baseTextHighEmphasis"
+                } `}
+            >
+                Market
+            </div>
+        </div>
+    );
 }
 
-function BuyButton({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: any }) {
-    return <div className={`flex flex-col mb-[-2px] flex-1 cursor-pointer justify-center border-b-2 p-4 ${activeTab === 'buy' ? 'border-b-greenBorder bg-greenBackgroundTransparent' : 'border-b-baseBorderMed hover:border-b-baseBorderFocus'}`} onClick={() => setActiveTab('buy')}>
-        <p className="text-center text-sm font-semibold text-greenText">
-            Buy
-        </p>
-    </div>
+function BuyButton({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: any }) {
+    return (
+        <div
+            className={`flex flex-col mb-[-2px] flex-1 cursor-pointer justify-center border-b-2 p-4 ${
+                activeTab === "buy"
+                    ? "border-b-greenBorder bg-greenBackgroundTransparent"
+                    : "border-b-baseBorderMed hover:border-b-baseBorderFocus"
+            }`}
+            onClick={() => setActiveTab("buy")}
+        >
+            <p className="text-center text-sm font-semibold text-greenText">Buy</p>
+        </div>
+    );
 }
 
-function SellButton({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: any }) {
-    return <div className={`flex flex-col mb-[-2px] flex-1 cursor-pointer justify-center border-b-2 p-4 ${activeTab === 'sell' ? 'border-b-redBorder bg-redBackgroundTransparent' : 'border-b-baseBorderMed hover:border-b-baseBorderFocus'}`} onClick={() => setActiveTab('sell')}>
-        <p className="text-center text-sm font-semibold text-redText">
-            Sell
-        </p>
-    </div>
+function SellButton({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: any }) {
+    return (
+        <div
+            className={`flex flex-col mb-[-2px] flex-1 cursor-pointer justify-center border-b-2 p-4 ${
+                activeTab === "sell"
+                    ? "border-b-redBorder bg-redBackgroundTransparent"
+                    : "border-b-baseBorderMed hover:border-b-baseBorderFocus"
+            }`}
+            onClick={() => setActiveTab("sell")}
+        >
+            <p className="text-center text-sm font-semibold text-redText">Sell</p>
+        </div>
+    );
 }
