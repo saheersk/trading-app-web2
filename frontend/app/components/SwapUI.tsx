@@ -1,8 +1,9 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-import { BASE_URL } from "../utils/SignalingManager";
 import Image from "next/image";
+
+const BASE_URL = "http://localhost:3000/api/v1"
 
 export function SwapUI({ market }: { market: string }) {
     const [amount, setAmount] = useState("");
@@ -16,7 +17,7 @@ export function SwapUI({ market }: { market: string }) {
         const side = activeTab === "buy" ? "buy" : "sell";
 
         try {
-            const response = await axios.post(`${BASE_URL}/api/v1/order`, {
+            const response = await axios.post(`${BASE_URL}/order`, {
                 market,
                 price,
                 quantity,
