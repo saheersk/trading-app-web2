@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 import Image from "next/image";
 
-const BASE_URL = "http://localhost:3000/api/v1"
+const BASE_URL = "http://localhost:3000/api/v1";
 
 export function SwapUI({ market }: { market: string }) {
     const [amount, setAmount] = useState("");
@@ -104,7 +104,13 @@ export function SwapUI({ market }: { market: string }) {
                     </div>
                     <button
                         type="button"
-                        className="font-semibold focus:ring-blue-200 focus:none focus:outline-none text-center h-12 rounded-xl text-base px-4 py-2 my-4 bg-greenPrimaryButtonBackground text-greenPrimaryButtonText active:scale-98"
+                        className={`font-semibold focus:ring-blue-200 focus:none focus:outline-none text-center h-12 rounded-xl text-base px-4 py-2 my-4 
+        ${
+            activeTab === "buy"
+                ? "bg-greenPrimaryButtonBackground text-greenPrimaryButtonText"
+                : "bg-red-500 text-white"
+        } 
+        active:scale-98`}
                         onClick={submitOrder}
                     >
                         {activeTab === "buy" ? "Buy" : "Sell"}
