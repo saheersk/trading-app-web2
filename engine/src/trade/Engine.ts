@@ -393,6 +393,9 @@ export class Engine {
             return;
         }
         const depth = orderbook.getDepth();
+
+        console.log(depth, "====================depth")
+
         if (side === "buy") {
             const updatedAsks = depth?.asks.filter(x => fills.map(f => f.price).includes(x[0].toString()));
             const updatedBid = depth?.bids.find(x => x[0] === price);
