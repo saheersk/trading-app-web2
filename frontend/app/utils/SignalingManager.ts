@@ -29,12 +29,15 @@ export class SignalingManager {
         this.ws.onopen = () => {
             this.initialized = true;
             this.bufferedMessages.forEach(message => {
+            console.log(message, "=========================event for loop onmessage==========")
+
                 this.ws.send(JSON.stringify(message));
             });
             this.bufferedMessages = [];
         }
         this.ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
+            console.log(message, "=========================event onmessage==========")
             const type = message.data.e;
             if (this.callbacks[type]) {
                 //@ts-ignore
@@ -62,6 +65,7 @@ export class SignalingManager {
                         // }
                         // console.log(newTicker);
                         // callback(newTicker);
+                        console.log(message, "======================depth message from ws==============================")
                         const updatedBids = message.data.b;
                         const updatedAsks = message.data.a;
                         callback({ bids: updatedBids, asks: updatedAsks });

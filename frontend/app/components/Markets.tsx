@@ -31,7 +31,7 @@ export const Markets = () => {
 function MarketRow({ market }: { market: any }) {
   const router = useRouter();
   return (
-    <tr className="cursor-pointer border-t border-baseBorderLight hover:bg-white/7 w-full" onClick={() => router.push(`/trade/${market.symbol}`)}>
+    <tr className="cursor-pointer border-t border-baseBorderLight hover:bg-white/7 w-full" onClick={() => router.push(`/trade/${market.symbol}_INR`)}>
       <td className="px-1 py-3">
         <div className="flex shrink">
           <div className="flex items-center undefined">

@@ -11,7 +11,7 @@ export function SwapUI({ market }: { market: string }) {
     const [type, setType] = useState("limit");
     const [price, setPrice] = useState(""); // State for price
     const [quantity, setQuantity] = useState(""); // State for quantity
-    const userId = "exampleUserId"; // Replace with actual user ID
+    const userId = "1"; // Replace with actual user ID
 
     const submitOrder = async () => {
         const side = activeTab === "buy" ? "buy" : "sell";
