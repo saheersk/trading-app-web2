@@ -25,6 +25,7 @@ export class User {
     }
 
     emit(message: OutgoingMessage) {
+        console.log(message, "=========================ws onmessage==========")
         this.ws.send(JSON.stringify(message));
     }
 
