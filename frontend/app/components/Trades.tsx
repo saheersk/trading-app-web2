@@ -44,13 +44,13 @@ function TradesTable({ trades }: { trades: Trade[] }) {
             {trades.map((trade, index) => (
                 <div
                     key={index}
-                    className={`flex justify-between text-xs py-1 ${
-                        trade.side === "BUY" ? "bg-green-100" : "bg-red-100"
-                    }`}
+                    className={`flex justify-between text-xs py-1`}
                 >
-                    <div className="text-white">{trade.price}</div>
-                    <div className="text-slate-500">{Number(trade.volume)}</div>
-                    <div className="text-slate-500">{new Date(trade.timestamp).toLocaleTimeString()}</div>
+                    <div className={`text-white ${
+                        trade.side === "BUY" ? "text-[rgb(253_75_78/var(--tw-text-opacity,1))]" : "text-[rgb(0_194_120/var(--tw-text-opacity,1))]"
+                        }`}>{trade.price}</div>
+                    <div className="w-full text-sm font-normal capitalize text-[rgba(244,244,246,0.9)] text-right">{Number(trade.volume)}</div>
+                    <div className="w-full text-sm font-normal capitalize text-[rgb(150_159_175/var(--tw-text-opacity,1))] text-right text-baseTextMedEmphasis">{new Date(trade.timestamp).toLocaleTimeString()}</div>
                 </div>
             ))}
         </div>
