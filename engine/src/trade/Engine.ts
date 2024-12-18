@@ -53,9 +53,9 @@ export class Engine {
 
         if (snapshot) {
             const snapshotSnapshot = JSON.parse(snapshot.toString());
-            console.log(snapshotSnapshot, "====================snapshotSnapshot================");
+            // console.log(JSON.stringify(snapshotSnapshot, null, 2), "====================snapshotSnapshot================");
 
-            this.orderBooks = snapshotSnapshot.orderBooks.map((o: any) => new Orderbook(o.baseAsset, o.bids, o.asks, o.lastTradeId, o.currentPrice));
+            this.orderBooks = snapshotSnapshot.orderBooks.map((o: any) => new Orderbook(o.baseAssets, o.bids, o.asks, o.lastTradeId, o.currentPrice));
             console.log(this.orderBooks, "====================orderBooks================");
 
             this.balances = new Map(snapshotSnapshot.balances);
