@@ -4,6 +4,7 @@ export const CANCEL_ORDER = "CANCEL_ORDER";
 export const ON_RAMP = "ON_RAMP";
 
 export const GET_DEPTH = "GET_DEPTH";
+export const GET_TRADE = "GET_TRADE";
 export const GET_OPEN_ORDERS = "GET_OPEN_ORDERS";
 
 
@@ -40,4 +41,7 @@ export type MessageFromApi = {
         userId: string,
         market: string,
     }
+} | {
+    type: typeof GET_TRADE,
+    data: any 
 }

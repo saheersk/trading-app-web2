@@ -33,4 +33,7 @@ export type MessageToApi = {
 } | {
     type: "OPEN_ORDERS",
     payload: Order[]
+} | {
+    type: "GET_TRADE",
+    payload: any            //change later
 }
