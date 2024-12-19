@@ -1,4 +1,4 @@
-import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS } from "."
+import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, GET_TRADE } from "."
 
 
 export type MessageToEngine = {
@@ -27,6 +27,9 @@ export type MessageToEngine = {
     data: {
         market: string,
     }
+} | {
+    type: typeof GET_TRADE,
+    data: any
 }
 
 export type CreateOrderMessage = {
