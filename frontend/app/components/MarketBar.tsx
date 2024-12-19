@@ -11,78 +11,43 @@ export const MarketBar = ({market}: {market: string}) => {
 
     useEffect(() => {
         getTicker(market).then(setTicker);
-
-        // SignalingManager.getInstance().registerCallback("ticker", (data: Partial<Ticker>)  =>  setTicker(prevTicker => ({
-        //     firstPrice: data?.firstPrice ?? prevTicker?.firstPrice ?? '',
-        //     high: data?.high ?? prevTicker?.high ?? '',
-        //     lastPrice: data?.lastPrice ?? prevTicker?.lastPrice ?? '',
-        //     low: data?.low ?? prevTicker?.low ?? '',
-        //     priceChange: data?.priceChange ?? prevTicker?.priceChange ?? '',
-        //     priceChangePercent: data?.priceChangePercent ?? prevTicker?.priceChangePercent ?? '',
-        //     quoteVolume: data?.quoteVolume ?? prevTicker?.quoteVolume ?? '',
-        //     symbol: data?.symbol ?? prevTicker?.symbol ?? '',
-        //     trades: data?.trades ?? prevTicker?.trades ?? '',
-        //     volume: data?.volume ?? prevTicker?.volume ?? '',
-        // })), `TICKER-${market}`);
         const signalingManager = SignalingManager.getInstance();
-    
+
         const tickerCallback = (data: any) => {
-            // setTicker((prevTicker) => {
-            //     const updatedTicker = {
-            //         firstPrice: data?.firstPrice ?? prevTicker?.firstPrice ?? '',
-            //         high: data?.high ?? prevTicker?.high ?? '',
-            //         lastPrice: data?.lastPrice ?? prevTicker?.lastPrice ?? '',
-            //         low: data?.low ?? prevTicker?.low ?? '',
-            //         priceChange: data?.priceChange ?? prevTicker?.priceChange ?? '',
-            //         priceChangePercent: data?.priceChangePercent ?? prevTicker?.priceChangePercent ?? '',
-            //         quoteVolume: data?.quoteVolume ?? prevTicker?.quoteVolume ?? '',
-            //         symbol: data?.symbol ?? prevTicker?.symbol ?? '',
-            //         trades: data?.trades ?? prevTicker?.trades ?? '',
-            //         volume: data?.volume ?? prevTicker?.volume ?? '',
-            //     };
-                
-                // Update metrics based on the new ticker data
-                //@ts-ignore
-                setTicker({
-                //@ts-ignore
-
-                    latestPrice: updatedTicker.lastPrice ?? metrics.latestPrice,
-                //@ts-ignore
-
-                    price24hAgo: updatedTicker.firstPrice ?? metrics.price24hAgo,
-                //@ts-ignore
-
-                    pointChange: (updatedTicker.lastPrice ?? 0) - (updatedTicker.firstPrice ?? 0),
-                //@ts-ignore
-
-                    percentageChange: updatedTicker.priceChangePercent ?? metrics.percentageChange,
-                //@ts-ignore
-
-                    high: updatedTicker.high ?? metrics.high,
-                //@ts-ignore
-
-                    low: updatedTicker.low ?? metrics.low,
-                //@ts-ignore
-
-                    numberOfTrades: updatedTicker.trades ?? metrics.numberOfTrades,
+            // Update ticker state with WebSocket data
+            setTicker((prevTicker: any) => {
+                const updatedTicker = {
+                    latestPrice: data?.lastPrice ?? prevTicker?.latestPrice,
+                    price24hAgo: data?.firstPrice ?? prevTicker?.price24hAgo,
+                    pointChange: (data?.lastPrice ?? 0) - (data?.firstPrice ?? 0),
+                    percentageChange: data?.priceChangePercent ?? prevTicker?.percentageChange,
+                    high: data?.high ?? prevTicker?.high,
+                    low: data?.low ?? prevTicker?.low,
+                    volume24h: data?.volume ?? prevTicker?.volume24h,
+                    trades: data?.trades ?? prevTicker?.trades,
+                    symbol: data?.symbol ?? prevTicker?.symbol,
                     lastTradeTime: new Date().toISOString(), // Assuming now as the trade time
-                });
-                //@ts-ignore
-    
+                };
+
                 return updatedTicker;
-            };
-        
-                //@ts-ignore
-    
+            });
+        };
+
+        // Register WebSocket callback for ticker updates
         signalingManager.registerCallback("ticker", tickerCallback, `TICKER-${market}`);
-                //@ts-ignore
-        SignalingManager.getInstance().sendMessage({"method":"SUBSCRIBE","params":[`ticker.${market}`]}	);
+        signalingManager.sendMessage({
+            method: "SUBSCRIBE",
+            params: [`ticker.${market}`]
+        });
 
         return () => {
-            SignalingManager.getInstance().deRegisterCallback("ticker", `TICKER-${market}`);
-            SignalingManager.getInstance().sendMessage({"method":"UNSUBSCRIBE","params":[`ticker.${market}`]}	);
-        }
-                //@ts-ignore
+            // Cleanup on component unmount
+            signalingManager.deRegisterCallback("ticker", `TICKER-${market}`);
+            signalingManager.sendMessage({
+                method: "UNSUBSCRIBE",
+                params: [`ticker.${market}`]
+            });
+        };
 
     }, [market])
     // 
