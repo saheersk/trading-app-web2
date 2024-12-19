@@ -74,7 +74,8 @@ export default function Page() {
                             ) : (
                                 <Depth market={market as string} />
                             )}
-                            
+                                <Trades market={market as string} />
+
                         </div>
                 </div>
             </div>

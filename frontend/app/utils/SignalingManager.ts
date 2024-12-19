@@ -29,8 +29,7 @@ export class SignalingManager {
         this.ws.onopen = () => {
             this.initialized = true;
             this.bufferedMessages.forEach(message => {
-            console.log(message, "=========================event for loop onmessage==========")
-
+                console.log(message, "=========================event for loop onmessage==========")
                 this.ws.send(JSON.stringify(message));
             });
             this.bufferedMessages = [];
@@ -38,6 +37,7 @@ export class SignalingManager {
         this.ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             console.log(message, "=========================event onmessage==========")
+
             const type = message.data.e;
             if (this.callbacks[type]) {
                 //@ts-ignore
@@ -48,7 +48,8 @@ export class SignalingManager {
                             high: message.data.h,
                             low: message.data.l,
                             volume: message.data.v,
-                            quoteVolume: message.data.V,
+                            priceChange: message.data.poc,
+                            priceChangePercent: message.data.pc,
                             symbol: message.data.s,
                         }
                         console.log(newTicker);
@@ -69,6 +70,17 @@ export class SignalingManager {
                         const updatedBids = message.data.b;
                         const updatedAsks = message.data.a;
                         callback({ bids: updatedBids, asks: updatedAsks });
+                    }
+                    if(type === "trade") {
+                        const newTrade: any = {
+                            symbol: message.data.s,
+                            timestamp: message.data.t,
+                            price: message.data.p,
+                            volume: message.data.q,
+                            side: message.data.ts,
+                        }
+                        console.log(newTrade, "======================trade message from ws==============================");
+                        callback(newTrade);
                     }
                 });
             }
