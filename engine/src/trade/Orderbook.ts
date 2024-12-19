@@ -20,6 +20,16 @@ export interface Fill {
     // quoteQuantity: string; // Add this line to include quoteQuantity
 }
 
+export interface FillsWithTimestamp {
+    price: string;
+    qty: number;
+    tradeId: number;
+    otherUserId: string;
+    markerOrderId: string;
+    timestamp: any;
+    // quoteQuantity: string; // Add this line to include quoteQuantity
+}
+
 export class Orderbook {
     bids: Order[];
     asks: Order[];

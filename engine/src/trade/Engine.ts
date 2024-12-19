@@ -1,8 +1,8 @@
 import fs from "fs";
 import { RedisManager } from "../RedisManager";
 import { ORDER_UPDATE, TRADE_ADDED } from "../types/index";
-import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../types/fromApi";
-import { Fill, Order, Orderbook } from "./Orderbook";
+import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, GET_TRADE, MessageFromApi, ON_RAMP } from "../types/fromApi";
+import { Fill, FillsWithTimestamp, Order, Orderbook } from "./Orderbook";
 
 
 export const BASE_CURRENCY = "INR";
@@ -150,7 +150,7 @@ export class Engine {
                     });
                     
                 } catch (e) {
-                    console.log("Error hwile cancelling order", );
+                    console.log("Error while cancelling order", );
                     console.log(e);
                 }
                 break;
@@ -193,6 +193,31 @@ export class Engine {
                         payload: {
                             bids: [],
                             asks: []
+                        }
+                    });
+                }
+                break;
+            case GET_TRADE:
+                try {
+                    const market = message.data.market;
+                    const orderbook = this.orderBooks.find(o => o.ticker() === market);
+                    if (!orderbook) {
+                        throw new Error("No orderbook found");
+                    }
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "TRADE",
+                        payload: orderbook.getDepth()
+                    });
+                } catch (e) {
+                    console.log(e);
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "TRADE",
+                        payload: {
+                            symbol: "",
+                            price: 0,
+                            volume: 0,
+                            timestamp: 0,
+                            side: 0
                         }
                     });
                 }
@@ -258,15 +283,23 @@ export class Engine {
         const { fills, executedQty } = orderbook ? orderbook.addOrder(order) : {fills: [], executedQty: 0};
         console.log(fills, executedQty, "create order fill execute ======================")
 
+        // Add timestamp to each fill
+        const timestamp = new Date().toISOString();
+        const fillsWithTimestamp = fills.map(fill => ({
+            ...fill,
+            timestamp
+        }));
+        console.log(fillsWithTimestamp, "===============fillsWithTimestamp=====================")
+
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
         
         this.createDbTrades(fills, market, userId);
         this.updateDbOrders(order, executedQty, fills, market);
         this.publishWsDepthUpdates(fills, price, side, market);
-        this.publishWsTrades(fills, userId, market);
-
-        // this.publishTickerUpdate(market, price, fills);
+        this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
+        this.publishTickerUpdate(market, price, fills);
+        // this.publishWsTicker()
 
         console.log("create last======================")
         
@@ -277,6 +310,9 @@ export class Engine {
         // });
     }
 
+    publishWsTicker(market: string, price: string, quantity: string) {
+        
+    }
     updateDbOrders(order: Order, executedQty: number, fills: Fill[], market: string) {
         RedisManager.getInstance().pushMessage({
             type: ORDER_UPDATE,
@@ -321,6 +357,8 @@ export class Engine {
     private publishTickerUpdate(market: string, latestPrice: string, fills: Fill[]) {
         // Convert latestPrice to a number
         const latestTradePrice = Number(latestPrice);
+
+        console.log(latestTradePrice, "=======latestprice==========")
         
         // Calculate volume traded in the current order
         const totalTradedVolume = fills.reduce((acc, fill) => acc + fill.qty, 0);
@@ -331,12 +369,12 @@ export class Engine {
     
         // Prepare ticker data
         const tickerData = {
-            latestPrice: latestTradePrice,
-            volume: totalTradedVolume,
-            high: highPrice,
-            low: lowPrice,
-            pointChange: latestTradePrice - Number(fills[0].price), // Change from the first fill price (simplified)
-            percentageChange: ((latestTradePrice - Number(fills[0].price)) / Number(fills[0].price)) * 100, // Percentage change
+            c: latestTradePrice,
+            v: totalTradedVolume,
+            h: highPrice,
+            l: lowPrice,
+            poc: latestTradePrice - Number(fills[0].price), // Change from the first fill price (simplified)
+            pc: ((latestTradePrice - Number(fills[0].price)) / Number(fills[0].price)) * 100, // Percentage change
         };
     
         // Publish the ticker data
@@ -345,24 +383,26 @@ export class Engine {
             data: {
                 e: "ticker",
                 //@ts-ignore
-                market,
+                s: market.split('_')[0],
                 ...tickerData,
             },
         });
     }
     
 
-    publishWsTrades(fills: Fill[], userId: string, market: string) {
+    publishWsTrades(fills: FillsWithTimestamp[], userId: string, market: string, baseAsset: string, side: string) {
         fills.forEach(fill => {
             RedisManager.getInstance().publishMessage(`trade@${market}`, {
                 stream: `trade@${market}`,
                 data: {
                     e: "trade",
-                    t: fill.tradeId,
+                    i: fill.tradeId,
                     m: fill.otherUserId === userId, // TODO: Is this right?
                     p: fill.price,
                     q: fill.qty.toString(),
-                    s: market,
+                    s: baseAsset,
+                    t: fill.timestamp,
+                    ts: side
                 }
             });
         });
