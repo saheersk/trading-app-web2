@@ -293,7 +293,6 @@ export class Engine {
 
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
-        
         this.createDbTrades(fills, market, userId);
         this.updateDbOrders(order, executedQty, fills, market);
         this.publishWsDepthUpdates(fills, price, side, market);
