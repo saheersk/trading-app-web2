@@ -42,6 +42,7 @@ export class SignalingManager {
             if (this.callbacks[type]) {
                 //@ts-ignore
                 this.callbacks[type].forEach(({ callback }) => {
+                    console.log(message, "===============newTicker================");
                     if (type === "ticker") {
                         const newTicker: Partial<Ticker> = {
                             lastPrice: message.data.c,
@@ -52,20 +53,9 @@ export class SignalingManager {
                             priceChangePercent: message.data.pc,
                             symbol: message.data.s,
                         }
-                        console.log(newTicker);
                         callback(newTicker);
                    }
                    if (type === "depth") {
-                        // const newTicker: Partial<Ticker> = {
-                        //     lastPrice: message.data.c,
-                        //     high: message.data.h,
-                        //     low: message.data.l,
-                        //     volume: message.data.v,
-                        //     quoteVolume: message.data.V,
-                        //     symbol: message.data.s,
-                        // }
-                        // console.log(newTicker);
-                        // callback(newTicker);
                         console.log(message, "======================depth message from ws==============================")
                         const updatedBids = message.data.b;
                         const updatedAsks = message.data.a;

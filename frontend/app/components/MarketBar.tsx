@@ -35,18 +35,33 @@ export const MarketBar = ({market}: {market: string}) => {
 
         // Register WebSocket callback for ticker updates
         signalingManager.registerCallback("ticker", tickerCallback, `TICKER-${market}`);
-        signalingManager.sendMessage({
+        // signalingManager.sendMessage({
+        //     method: "SUBSCRIBE",
+        //     params: [`ticker@${market}`]
+        // });
+
+        SignalingManager.getInstance().sendMessage({
             method: "SUBSCRIBE",
-            params: [`ticker.${market}`]
-        });
+            params: [`ticker@${market}`],
+          });
+      
 
         return () => {
             // Cleanup on component unmount
-            signalingManager.deRegisterCallback("ticker", `TICKER-${market}`);
-            signalingManager.sendMessage({
+            // signalingManager.deRegisterCallback("ticker", `TICKER-${market}`);
+            // signalingManager.sendMessage({
+            //     method: "UNSUBSCRIBE",
+            //     params: [`ticker@${market}`]
+            // });
+
+            SignalingManager.getInstance().sendMessage({
                 method: "UNSUBSCRIBE",
-                params: [`ticker.${market}`]
-            });
+                params: [`ticker@${market}`],
+              });
+              SignalingManager.getInstance().deRegisterCallback(
+                "ticker",
+                `TICKER-${market}`
+              );
         };
 
     }, [market])
