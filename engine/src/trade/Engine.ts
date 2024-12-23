@@ -293,7 +293,7 @@ export class Engine {
 
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
-        this.createDbTrades(fills, market, userId);
+        this.createDbTrades(fills, market, userId, side);
         this.updateDbOrders(order, executedQty, fills, market);
         this.publishWsDepthUpdates(fills, price, side, market);
         this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
@@ -336,7 +336,7 @@ export class Engine {
         });
     }
 
-    createDbTrades(fills: Fill[], market: string, userId: string) {
+    createDbTrades(fills: Fill[], market: string, userId: string, side: any) {
         fills.forEach(fill => {
             RedisManager.getInstance().pushMessage({
                 type: TRADE_ADDED,
@@ -347,6 +347,8 @@ export class Engine {
                     price: fill.price,
                     quantity: fill.qty.toString(),
                     quoteQuantity: (fill.qty * Number(fill.price)).toString(),
+                    //@ts-ignore
+                    side: side,
                     timestamp: Date.now()
                 }
             });

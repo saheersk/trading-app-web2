@@ -6,3 +6,88 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+enum Side {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  COMPLETED
+  PENDING
+  CANCELED
+}
+
+model Stock {
+  id               Int           @id @default(autoincrement())
+  symbol           String        @unique
+  name             String
+  market           String
+  industry         String?
+  outstandingShares Int
+  createdAt        DateTime      @default(now())
+
+  trades           Trade[]
+  orderHistory     OrderHistory[]
+  positions        Position[]
+
+  @@index([symbol])
+}
+
+model Trade {
+  id           Int      @id @default(autoincrement())
+  stockId      Int
+  price        Float
+  volume       Float
+  timestamp    DateTime
+  side         Side
+
+  stock        Stock    @relation(fields: [stockId], references: [id])
+
+  @@index([stockId, timestamp])
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  username     String?
+  passwordHash String?
+  googleId     String?
+  image        String?
+  balance      Int         @default(1000000000)
+  createdAt    DateTime    @default(now())
+
+  orderHistory OrderHistory[]
+  positions    Position[]
+
+  @@index([email])
+}
+
+model OrderHistory {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  stockId   Int
+  side      Side
+  price     Decimal
+  volume    Decimal
+  status    OrderStatus
+  createdAt DateTime    @default(now())
+
+  user      User        @relation(fields: [userId], references: [id])
+  stock     Stock       @relation(fields: [stockId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model Position {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  stockId      Int
+  averagePrice Float
+  volume       Float
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+  stock        Stock    @relation(fields: [stockId], references: [id])
+
+  @@unique([userId, stockId])
+}

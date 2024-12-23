@@ -1,47 +1,63 @@
-import { createClient } from 'redis';
-import { PrismaClient } from '@prisma/client';
-import { DbMessage } from './types';
+import { createClient } from "redis";
+import { PrismaClient } from "@prisma/client";
+import { DbMessage } from "./types";
 
 const prisma = new PrismaClient();
 
-
 async function main() {
-    const redisClient = createClient();
-    await redisClient.connect();
-    console.log("connected to redis");
+  const redisClient = createClient();
+  await redisClient.connect();
+  console.log("connected to redis");
 
-    while (true) {
-        const response = await redisClient.rPop("db_processor");
-        if (response) {
-            const data: any = JSON.parse(response);
-            if (data.type === "TRADE_ADDED") {
-                console.log("adding data: ", data);
+  while (true) {
+    const response = await redisClient.rPop("db_processor");
+    if (response) {
+      const data: any = JSON.parse(response);
+      if (data.type === "TRADE_ADDED") {
+        console.log("adding data: ", data);
 
-                const price = data.data.price;
-                const volume = data.data.volume;
-                const stockId = data.data.stockId;
-                const side = data.data.side;
-                const timestamp = new Date(data.data.timestamp);
+        const market = data.data.market;
 
-                await prisma.trade.create({
-                    data: {
-                        timestamp: timestamp,
-                        price: price,
-                        volume: volume,
-                        stockId: stockId,
-                        side: side
-                    }
-                });
-            }
-        }
+        const symbol = market.split("_")[0];
+
+        const stock = await prisma.stock.findUnique({
+          where: {
+            symbol: symbol,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        console.log(stock?.id, "========stock");
+        const price = data.data.price;
+        const volume = data.data.quantity;
+        const stockId = stock?.id;
+        const side = data.data.side;
+        const timestamp = new Date(data.data.timestamp);
+
+        const trade = await prisma.trade.create({
+          //@ts-ignore
+          data: {
+            timestamp: timestamp,
+            price: parseFloat(price),
+            volume: parseFloat(volume),
+            stockId: stockId,
+            side: side.toUpperCase(),
+          },
+        });
+
+        console.log("Trade added:", trade);
+      }
     }
+  }
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

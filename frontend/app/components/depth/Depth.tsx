@@ -73,7 +73,10 @@ export function Depth({ market }: {market: string}) {
         
             setBids((originalBids) => {
                 if (!data.bids || data.bids.length === 0) {
-                    return originalBids; // Clear bids if data.bids is empty
+                    if(!data.asks || data.asks.length === 0) {
+                        return [];
+                    }
+                    return originalBids; 
                 }
         
                 const bidsAfterUpdate = [...(originalBids || [])];
@@ -110,7 +113,10 @@ export function Depth({ market }: {market: string}) {
         
             setAsks((originalAsks) => {
                 if (!data.asks || data.asks.length === 0) {
-                    return originalAsks; // Clear asks if data.asks is empty
+                    if(!data.bids || data.bids.length === 0) {
+                        return [];
+                    }
+                    return originalAsks;
                 }
         
                 const asksAfterUpdate = [...(originalAsks || [])];
