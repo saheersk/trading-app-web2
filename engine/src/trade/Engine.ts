@@ -297,7 +297,7 @@ export class Engine {
         this.updateDbOrders(order, executedQty, fills, market);
         this.publishWsDepthUpdates(fills, price, side, market);
         this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
-        this.publishTickerUpdate(market, price, fills);
+        // this.publishTickerUpdate(market, price, fills);
         // this.publishWsTicker()
 
         console.log("create last======================")
@@ -354,29 +354,34 @@ export class Engine {
     }
 
     private publishTickerUpdate(market: string, latestPrice: string, fills: Fill[]) {
-        // Convert latestPrice to a number
         const latestTradePrice = Number(latestPrice);
 
         console.log(latestTradePrice, "=======latestprice==========")
+
+        if (!fills || fills.length === 0) {
+            console.error("Error: Fills array is empty or undefined.");
+            return;
+        }
+    
+        if (!fills.every(fill => fill && fill.price && fill.qty)) {
+            console.error("Error: Fills array contains invalid elements.");
+            return;
+        }
         
-        // Calculate volume traded in the current order
         const totalTradedVolume = fills.reduce((acc, fill) => acc + fill.qty, 0);
         
-        // Assume we can derive some static high and low values from fills for simplicity
         const highPrice = Math.max(...fills.map(fill => Number(fill.price)));
         const lowPrice = Math.min(...fills.map(fill => Number(fill.price)));
     
-        // Prepare ticker data
         const tickerData = {
             c: latestTradePrice,
             v: totalTradedVolume,
             h: highPrice,
             l: lowPrice,
-            poc: latestTradePrice - Number(fills[0].price), // Change from the first fill price (simplified)
-            pc: ((latestTradePrice - Number(fills[0].price)) / Number(fills[0].price)) * 100, // Percentage change
+            poc: latestTradePrice - Number(fills[0].price),
+            pc: ((latestTradePrice - Number(fills[0].price)) / Number(fills[0].price)) * 100, 
         };
     
-        // Publish the ticker data
         RedisManager.getInstance().publishMessage(`ticker@${market}`, {
             stream: `ticker@${market}`,
             data: {
@@ -429,39 +434,54 @@ export class Engine {
     publishWsDepthUpdates(fills: Fill[], price: string, side: "buy" | "sell", market: string) {
         const orderbook = this.orderBooks.find(o => o.ticker() === market);
         if (!orderbook) {
+            console.log("No orderbook found for market:", market);
             return;
         }
+    
         const depth = orderbook.getDepth();
-
-        console.log(depth, "====================depth")
-
+        console.log(depth, "====================depth");
+    
         if (side === "buy") {
-            const updatedAsks = depth?.asks.filter(x => fills.map(f => f.price).includes(x[0].toString()));
-            const updatedBid = depth?.bids.find(x => x[0] === price);
-            console.log("publish ws depth updates")
+            const updatedAsks = depth?.asks.filter(x => 
+                fills.some(f => Number(f.price) === Number(x[0]))
+            );
+            const updatedBid = depth?.bids.find(x => Number(x[0]) === Number(price));
+    
+            console.log(updatedAsks, "====================updatedAsks======================");
+            console.log(updatedBid, "====================updatedBid======================");
+    
+            console.log("Publishing WS depth updates for buy side");
             RedisManager.getInstance().publishMessage(`depth@${market}`, {
                 stream: `depth@${market}`,
                 data: {
-                    a: updatedAsks,
+                    a: updatedAsks || [],
                     b: updatedBid ? [updatedBid] : [],
                     e: "depth"
                 }
             });
         }
+    
         if (side === "sell") {
-           const updatedBids = depth?.bids.filter((x: any) => fills.map(f => f.price).includes(x[0].toString()));
-           const updatedAsk = depth?.asks.find((x: any) => x[0] === price);
-           console.log("publish ws depth updates")
-           RedisManager.getInstance().publishMessage(`depth@${market}`, {
-               stream: `depth@${market}`,
-               data: {
-                   a: updatedAsk ? [updatedAsk] : [],
-                   b: updatedBids,
-                   e: "depth"
-               }
-           });
+            const updatedBids = depth?.bids.filter(x =>
+                fills.some(f => Number(f.price) === Number(x[0]))
+            );
+            const updatedAsk = depth?.asks.find(x => Number(x[0]) === Number(price));
+    
+            console.log(updatedAsk, "====================updatedAsk======================");
+            console.log(updatedBids, "====================updatedBids======================");
+    
+            console.log("Publishing WS depth updates for sell side");
+            RedisManager.getInstance().publishMessage(`depth@${market}`, {
+                stream: `depth@${market}`,
+                data: {
+                    a: updatedAsk ? [updatedAsk] : [],
+                    b: updatedBids || [],
+                    e: "depth"
+                }
+            });
         }
     }
+    
 
     updateBalance(userId: string, baseAsset: string, quoteAsset: string, side: "buy" | "sell", fills: Fill[], executedQty: number) {
         if (side === "buy") {

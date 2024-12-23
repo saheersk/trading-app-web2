@@ -60,42 +60,46 @@ export class Orderbook {
         }
     }
 
-    addOrder(order: Order): {
-        executedQty: number,
-        fills: Fill[]
-    } {
-        if(order.side === "buy") {
-            const { executedQty, fills } = this.matchBid(order);
-            order.filled = executedQty;
+    // addOrder(order: Order): {
+    //     executedQty: number,
+    //     fills: Fill[]
+    // } {
+    //     if(order.side === "buy") {
+    //         console.log(order, "======addOrder===========order")
+    //         const { executedQty, fills } = this.matchBid(order);
+    //         order.filled = executedQty;
 
-            if(executedQty === order.quantity){
-                return {
-                    executedQty,
-                    fills
-                }
-            }
-            this.bids.push(order);
-            return {
-                executedQty,
-                fills
-            }
-        } else {
-            const { executedQty, fills } = this.matchAsk(order);
-            order.filled = executedQty;
+    //         console.log(order, "======addOrder===========order====buy")
+
+    //         if(executedQty === order.quantity){
+    //             return {
+    //                 executedQty,
+    //                 fills
+    //             }
+    //         }
+    //         this.bids.push(order);
+    //         console.log(this.bids, "============bids")
+    //         return {
+    //             executedQty,
+    //             fills
+    //         }
+    //     } else {
+    //         const { executedQty, fills } = this.matchAsk(order);
+    //         order.filled = executedQty;
             
-            if(executedQty === order.quantity){
-                return {
-                    executedQty,
-                    fills
-                }
-            }
-            this.asks.push(order);
-            return {
-                executedQty,
-                fills
-            }
-        }
-    }
+    //         if(executedQty === order.quantity){
+    //             return {
+    //                 executedQty,
+    //                 fills
+    //             }
+    //         }
+    //         this.asks.push(order);
+    //         return {
+    //             executedQty,
+    //             fills
+    //         }
+    //     }
+    // }
 
     // addOrder(order: Order): {
     //     executedQty: number,
@@ -221,7 +225,7 @@ export class Orderbook {
     //         executedQty
     //     };
     // }
-    
+        
     // matchBid(order: Order): { fills:  Fill[], executedQty: number } {
     //     const fills: Fill[] = [];
     //     let executedQty = 0;
@@ -282,59 +286,167 @@ export class Orderbook {
     //     };
     // }
 
-    matchOrder(
-        order: Order,
-        book: { price: number; quantity: number; filled: number; userId: string; orderId: string }[],
-        isBid: boolean
-    ): { fills: Fill[]; executedQty: number } {
+    // matchOrder(
+    //     order: Order,
+    //     book: { price: number; quantity: number; filled: number; userId: string; orderId: string }[],
+    //     isBid: boolean
+    // ): { fills: Fill[]; executedQty: number } {
+    //     const fills: Fill[] = [];
+    //     let executedQty = 0;
+    
+    //     for (let i = 0; i < book.length; i++) {
+    //         const canExecute =
+    //             (isBid ? book[i].price <= order.price : book[i].price >= order.price) &&
+    //             executedQty < order.quantity;
+    
+    //         if (canExecute) {
+    //             const filledQty = Math.min(order.quantity - executedQty, book[i].quantity - book[i].filled);
+    //             executedQty += filledQty;
+    //             book[i].filled += filledQty;
+    
+    //             fills.push({
+    //                 price: book[i].price.toFixed(2),
+    //                 qty: filledQty,
+    //                 tradeId: this.lastTradeId++,
+    //                 otherUserId: book[i].userId,
+    //                 markerOrderId: book[i].orderId,
+    //             });
+    //         }
+    //     }
+    
+    //     // Remove fully filled orders
+    //     const remainingOrders = book.filter((item) => item.filled < item.quantity);
+    
+    //     // Update the order book
+    //     if (isBid) {
+    //         //@ts-ignore
+    //         this.asks = remainingOrders;
+    //     } else {
+    //         //@ts-ignore
+    //         this.bids = remainingOrders;
+    //     }
+    
+    //     return {
+    //         fills,
+    //         executedQty,
+    //     };
+    // }
+    
+    // matchBid(order: Order): { fills: Fill[]; executedQty: number } {
+    //     return this.matchOrder(order, this.asks, true);
+    // }
+    
+    // matchAsk(order: Order): { fills: Fill[]; executedQty: number } {
+    //     return this.matchOrder(order, this.bids, false);
+    // }
+
+
+
+    addOrder(order: Order): {
+        executedQty: number,
+        fills: Fill[]
+    } {
+        if (order.side === "buy") {
+            console.log(order, "======addOrder===========order");
+    
+            const { executedQty, fills } = this.matchBid(order);
+            order.filled = (order.filled || 0) + executedQty;
+    
+            console.log(order, "======addOrder===========order====buy");
+    
+            if (order.filled >= order.quantity) {
+                return { executedQty, fills };
+            }
+    
+            const remainingOrder = {
+                ...order,
+                quantity: order.quantity - order.filled,
+            };
+            this.bids.push(remainingOrder);
+    
+            console.log(this.bids, "============bids after adding remaining order");
+            return { executedQty, fills };
+        } else {
+            console.log(order, "======addOrder===========order");
+    
+            const { executedQty, fills } = this.matchAsk(order);
+            order.filled = (order.filled || 0) + executedQty;
+    
+            if (order.filled >= order.quantity) {
+                return { executedQty, fills };
+            }
+    
+            const remainingOrder = {
+                ...order,
+                quantity: order.quantity - order.filled,
+            };
+            this.asks.push(remainingOrder);
+    
+            console.log(this.asks, "============asks after adding remaining order");
+            return { executedQty, fills };
+        }
+    }
+    
+    matchBid(order: Order): { fills: Fill[], executedQty: number } {
         const fills: Fill[] = [];
         let executedQty = 0;
     
-        for (let i = 0; i < book.length; i++) {
-            const canExecute =
-                (isBid ? book[i].price <= order.price : book[i].price >= order.price) &&
-                executedQty < order.quantity;
-    
-            if (canExecute) {
-                const filledQty = Math.min(order.quantity - executedQty, book[i].quantity - book[i].filled);
+        for (let i = 0; i < this.asks.length; i++) {
+            if (this.asks[i].price <= order.price && executedQty < order.quantity) {
+                const filledQty = Math.min(order.quantity - executedQty, this.asks[i].quantity);
                 executedQty += filledQty;
-                book[i].filled += filledQty;
+                this.asks[i].filled = (this.asks[i].filled || 0) + filledQty;
     
                 fills.push({
-                    price: book[i].price.toFixed(2), // Ensure consistent formatting
+                    price: this.asks[i].price.toString(),
                     qty: filledQty,
                     tradeId: this.lastTradeId++,
-                    otherUserId: book[i].userId,
-                    markerOrderId: book[i].orderId,
+                    otherUserId: this.asks[i].userId,
+                    markerOrderId: this.asks[i].orderId
                 });
+    
+                this.asks[i].quantity -= filledQty;
+    
+                if (this.asks[i].quantity === 0) {
+                    this.asks.splice(i, 1);
+                    i--; 
+                }
             }
         }
     
-        // Remove fully filled orders
-        const remainingOrders = book.filter((item) => item.filled < item.quantity);
+        return { fills, executedQty };
+    }
     
-        // Update the order book
-        if (isBid) {
-            //@ts-ignore
-            this.asks = remainingOrders;
-        } else {
-            //@ts-ignore
-            this.bids = remainingOrders;
+    matchAsk(order: Order): { fills: Fill[], executedQty: number } {
+        const fills: Fill[] = [];
+        let executedQty = 0;
+    
+        for (let i = 0; i < this.bids.length; i++) {
+            if (this.bids[i].price >= order.price && executedQty < order.quantity) {
+                const filledQty = Math.min(order.quantity - executedQty, this.bids[i].quantity);
+                executedQty += filledQty;
+                this.bids[i].filled = (this.bids[i].filled || 0) + filledQty;
+    
+                fills.push({
+                    price: this.bids[i].price.toString(),
+                    qty: filledQty,
+                    tradeId: this.lastTradeId++,
+                    otherUserId: this.bids[i].userId,
+                    markerOrderId: this.bids[i].orderId
+                });
+    
+                this.bids[i].quantity -= filledQty;
+    
+                if (this.bids[i].quantity === 0) {
+                    this.bids.splice(i, 1);
+                    i--; 
+                }
+            }
         }
     
-        return {
-            fills,
-            executedQty,
-        };
+        return { fills, executedQty };
     }
     
-    matchBid(order: Order): { fills: Fill[]; executedQty: number } {
-        return this.matchOrder(order, this.asks, true);
-    }
-    
-    matchAsk(order: Order): { fills: Fill[]; executedQty: number } {
-        return this.matchOrder(order, this.bids, false);
-    }
 
     getDepth() {
         const bids: [string, string][] = [];
