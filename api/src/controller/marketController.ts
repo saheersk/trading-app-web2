@@ -84,7 +84,6 @@ export async function get24hMetrics(symbol: string) {
     if (metrics.latestPrice && stockData?.outstandingShares) {
         //@ts-ignore
         const rawMarketCap =  metrics.latestPrice * stockData.outstandingShares;
-        console.log(rawMarketCap)
         //@ts-ignore
         metrics.marketCap = formatMarketCap(rawMarketCap);
     }

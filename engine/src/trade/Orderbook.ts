@@ -347,12 +347,8 @@ export class Orderbook {
         fills: Fill[]
     } {
         if (order.side === "buy") {
-            console.log(order, "======addOrder===========order");
-    
             const { executedQty, fills } = this.matchBid(order);
             order.filled = (order.filled || 0) + executedQty;
-    
-            console.log(order, "======addOrder===========order====buy");
     
             if (order.filled >= order.quantity) {
                 return { executedQty, fills };
@@ -363,12 +359,9 @@ export class Orderbook {
                 quantity: order.quantity - order.filled,
             };
             this.bids.push(remainingOrder);
-    
-            console.log(this.bids, "============bids after adding remaining order");
+
             return { executedQty, fills };
         } else {
-            console.log(order, "======addOrder===========order");
-    
             const { executedQty, fills } = this.matchAsk(order);
             order.filled = (order.filled || 0) + executedQty;
     
@@ -382,7 +375,6 @@ export class Orderbook {
             };
             this.asks.push(remainingOrder);
     
-            console.log(this.asks, "============asks after adding remaining order");
             return { executedQty, fills };
         }
     }

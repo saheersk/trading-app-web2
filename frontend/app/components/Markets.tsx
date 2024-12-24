@@ -12,8 +12,6 @@ export const Markets = () => {
     getMarket().then((m) => setTickers(m));
   }, []);
 
-  console.log(tickers, "================================markets");
-
   return (
     <div className="flex flex-col flex-1 max-w-[1280px] w-full">
       <div className="flex flex-col min-w-[700px] flex-1 w-full">

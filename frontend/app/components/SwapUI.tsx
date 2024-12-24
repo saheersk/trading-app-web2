@@ -24,7 +24,6 @@ export function SwapUI({ market }: { market: string }) {
                 side,
                 userId,
             });
-            console.log("Order created successfully:", response.data);
         } catch (error) {
             console.error("Error creating order:", error);
         }

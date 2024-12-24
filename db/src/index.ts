@@ -14,8 +14,6 @@ async function main() {
     if (response) {
       const data: any = JSON.parse(response);
       if (data.type === "TRADE_ADDED") {
-        console.log("adding data: ", data);
-
         const market = data.data.market;
 
         const symbol = market.split("_")[0];
@@ -29,7 +27,6 @@ async function main() {
           },
         });
 
-        console.log(stock?.id, "========stock");
         const price = data.data.price;
         const volume = data.data.quantity;
         const stockId = stock?.id;
@@ -46,8 +43,6 @@ async function main() {
             side: side.toUpperCase(),
           },
         });
-
-        console.log("Trade added:", trade);
       }
     }
   }

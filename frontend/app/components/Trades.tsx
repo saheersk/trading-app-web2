@@ -24,9 +24,6 @@ export default function Trades({ market }: { market: string }) {
     SignalingManager.getInstance().registerCallback(
       "trade",
       (data: any) => {
-        console.log("Trade has been updated");
-        console.log(data);
-
         setTrades((previousTrades) => {
           const updatedTrades = [...(previousTrades || [])];
 

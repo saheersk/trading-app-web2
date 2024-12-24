@@ -29,20 +29,17 @@ export class SignalingManager {
         this.ws.onopen = () => {
             this.initialized = true;
             this.bufferedMessages.forEach(message => {
-                console.log(message, "=========================event for loop onmessage==========")
                 this.ws.send(JSON.stringify(message));
             });
             this.bufferedMessages = [];
         }
         this.ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
-            console.log(message, "=========================event onmessage==========")
-
             const type = message.data.e;
+
             if (this.callbacks[type]) {
                 //@ts-ignore
                 this.callbacks[type].forEach(({ callback }) => {
-                    console.log(message, "===============newTicker================");
                     if (type === "ticker") {
                         const newTicker: Partial<Ticker> = {
                             lastPrice: message.data.c,
@@ -56,7 +53,6 @@ export class SignalingManager {
                         callback(newTicker);
                    }
                    if (type === "depth") {
-                        console.log(message, "======================depth message from ws==============================")
                         const updatedBids = message.data.b;
                         const updatedAsks = message.data.a;
                         callback({ bids: updatedBids, asks: updatedAsks });
@@ -69,7 +65,6 @@ export class SignalingManager {
                             volume: message.data.q,
                             side: message.data.ts,
                         }
-                        console.log(newTrade, "======================trade message from ws==============================");
                         callback(newTrade);
                     }
                 });
