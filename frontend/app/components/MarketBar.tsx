@@ -7,39 +7,40 @@ import { AnyARecord } from "dns";
 
 export const MarketBar = ({market}: {market: string}) => {
     const [ticker, setTicker] = useState<any>(null);
-    // const [ticker, setTicker] = useState<Ticker | null>(null);/
-
+    console.log(ticker, "=========ticker")
     useEffect(() => {
         getTicker(market).then(setTicker);
         const signalingManager = SignalingManager.getInstance();
 
         const tickerCallback = (data: any) => {
-            // Update ticker state with WebSocket data
+            console.log(data, "===============data ticker==========");
             setTicker((prevTicker: any) => {
-                const updatedTicker = {
-                    latestPrice: data?.lastPrice ?? prevTicker?.latestPrice,
-                    price24hAgo: data?.firstPrice ?? prevTicker?.price24hAgo,
-                    pointChange: (data?.lastPrice ?? 0) - (data?.firstPrice ?? 0),
-                    percentageChange: data?.priceChangePercent ?? prevTicker?.percentageChange,
-                    high: data?.high ?? prevTicker?.high,
-                    low: data?.low ?? prevTicker?.low,
-                    volume24h: data?.volume ?? prevTicker?.volume24h,
-                    trades: data?.trades ?? prevTicker?.trades,
-                    symbol: data?.symbol ?? prevTicker?.symbol,
-                    lastTradeTime: new Date().toISOString(), // Assuming now as the trade time
+                const latestPrice = Number(data?.lastPrice ?? prevTicker?.latestPrice ?? 0);
+                const volume24h = Number(data?.volume ?? prevTicker?.volume24h ?? 0);
+                const price24hAgo = Number(prevTicker?.price24hAgo ?? latestPrice);
+        
+                const pointChange = latestPrice - price24hAgo;
+                const percentageChange = price24hAgo !== 0 
+                    ? ((pointChange / price24hAgo) * 100).toFixed(2)
+                    : "0.00";
+        
+                return {
+                    ...prevTicker,
+                    latestPrice,
+                    volume24h,
+                    price24hAgo,
+                    pointChange: pointChange,
+                    percentageChange,
+                    high: Math.max(Number(prevTicker?.high ?? latestPrice), latestPrice),
+                    low: Math.min(Number(prevTicker?.low ?? latestPrice), latestPrice),
+                    lastTradeTime: new Date().toISOString(),
+                    numberOfTrades: (prevTicker?.numberOfTrades ?? 0) + 1,
                 };
-
-                return updatedTicker;
             });
         };
 
-        // Register WebSocket callback for ticker updates
         signalingManager.registerCallback("ticker", tickerCallback, `TICKER-${market}`);
-        // signalingManager.sendMessage({
-        //     method: "SUBSCRIBE",
-        //     params: [`ticker@${market}`]
-        // });
-
+  
         SignalingManager.getInstance().sendMessage({
             method: "SUBSCRIBE",
             params: [`ticker@${market}`],
@@ -47,13 +48,6 @@ export const MarketBar = ({market}: {market: string}) => {
       
 
         return () => {
-            // Cleanup on component unmount
-            // signalingManager.deRegisterCallback("ticker", `TICKER-${market}`);
-            // signalingManager.sendMessage({
-            //     method: "UNSUBSCRIBE",
-            //     params: [`ticker@${market}`]
-            // });
-
             SignalingManager.getInstance().sendMessage({
                 method: "UNSUBSCRIBE",
                 params: [`ticker@${market}`],
@@ -65,7 +59,6 @@ export const MarketBar = ({market}: {market: string}) => {
         };
 
     }, [market])
-    // 
 
     return <div>
         <div className="flex items-center flex-row relative w-full overflow-hidden border-b border-slate-800">
@@ -78,7 +71,7 @@ export const MarketBar = ({market}: {market: string}) => {
                         </div>
                         <div className="flex flex-col">
                             <p className={`font-medium text-xs text-slate-400 text-sm`}>24H Change</p>
-                            <p className={` text-sm font-medium tabular-nums leading-5 text-sm text-greenText ${Number(ticker?.percentageChange) > 0 ? "text-green-500" : "text-red-500"}`}>{Number(ticker?.pointChange) > 0 ? "+" : ""} {ticker?.pointChange?.toFixed(2)}<br /> {Number(ticker?.pointChange) > 0 ? "+" : ""} {Number(ticker?.percentageChange)?.toFixed(2)}%</p></div><div className="flex flex-col">
+                            <p className={` text-sm font-medium tabular-nums leading-5 text-sm text-greenText ${Number(ticker?.percentageChange) > 0 ? "text-green-500" : "text-red-500"}`}>{Number(ticker?.pointChange) > 0 ? "+" : ""} {Number(ticker?.pointChange).toFixed(2)}<br /> {Number(ticker?.pointChange) > 0 ? "+" : ""} {Number(ticker?.percentageChange)?.toFixed(2)}%</p></div><div className="flex flex-col">
                                 <p className="font-medium text-xs text-slate-400 text-sm">24H High</p>
                                 <p className="text-sm font-medium tabular-nums leading-5 text-sm ">{ticker?.high?.toFixed(2)}</p>
                                 </div>
