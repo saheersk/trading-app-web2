@@ -20,7 +20,6 @@ export default function Trades({ market }: { market: string }) {
     getTrades(market).then((data: any) => {
       setTrades(data);
     });
-
     SignalingManager.getInstance().registerCallback(
       "trade",
       (data: any) => {
@@ -82,7 +81,7 @@ function TradesTable({ trades }: { trades: Trade[] }) {
         <div key={index} className={`flex justify-between text-xs py-1`}>
           <div
             className={`${
-              trade.side === "BUY"
+              trade.side === Side.SELL
                 ? "text-[rgb(253_75_78/var(--tw-text-opacity,1))]"
                 : "text-[rgb(0_194_120/var(--tw-text-opacity,1))]"
             }`}

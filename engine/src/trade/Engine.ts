@@ -283,7 +283,7 @@ export class Engine {
         this.updateDbOrders(order, executedQty, fills, market);
         this.publishWsDepthUpdates(fills, price, side, market);
         this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
-        // this.publishTickerUpdate(market, price, fills);
+        this.publishTickerUpdate(market, price, fills);
         // this.publishWsTicker()
         
         return { executedQty, fills, orderId: order.orderId };
@@ -382,11 +382,11 @@ export class Engine {
                     e: "trade",
                     i: fill.tradeId,
                     m: fill.otherUserId === userId, // TODO: Is this right?
-                    p: fill.price,
-                    q: fill.qty.toString(),
+                    p: Number(fill.price),
+                    q: Number(fill.qty),
                     s: baseAsset,
                     t: fill.timestamp,
-                    ts: side
+                    ts: side.toUpperCase()
                 }
             });
         });

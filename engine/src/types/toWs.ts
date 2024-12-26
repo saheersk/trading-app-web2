@@ -28,8 +28,8 @@ export type TradeAddedMessage = {
         e: "trade",
         i: number,
         m: boolean,
-        p: string,
-        q: string,
+        p: number,
+        q: number,
         s: string, // symbol
         t: any,
         ts: string
