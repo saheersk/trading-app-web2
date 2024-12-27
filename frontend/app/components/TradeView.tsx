@@ -10,6 +10,7 @@ export function TradeView({
 }) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartManagerRef = useRef<ChartManager>(null);
+  
 
   useEffect(() => {
     const init = async () => {
@@ -22,7 +23,7 @@ export function TradeView({
         if (chartManagerRef.current) {
           chartManagerRef.current.destroy();
         }
-        // console.log(klineData, 'kline in fe==============')
+        console.log(klineData, 'kline in fe==============')
   
         const chartManager = new ChartManager(
           chartRef.current,
