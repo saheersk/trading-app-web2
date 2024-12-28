@@ -69,6 +69,8 @@ model OrderHistory {
   side      Side
   price     Decimal
   volume    Decimal
+  executedQty   Decimal      @default(0)
+  remainingQty  Decimal      @default(0)
   status    OrderStatus
   createdAt DateTime    @default(now())
 
@@ -76,7 +78,7 @@ model OrderHistory {
   stock     Stock       @relation(fields: [stockId], references: [id])
 
   @@index([userId, createdAt])
-}
+} 
 
 model Position {
   id           Int      @id @default(autoincrement())
