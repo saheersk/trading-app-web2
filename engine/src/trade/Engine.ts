@@ -280,7 +280,7 @@ export class Engine {
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
         this.createDbTrades(fills, market, userId, side);
-        this.updateDbOrders(order, executedQty, fills, market);
+        this.updateDbOrders(order, executedQty, fills, market, userId);
         this.publishWsDepthUpdates(fills, price, side, market);
         this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
         this.publishTickerUpdate(market, price, fills);
@@ -292,7 +292,7 @@ export class Engine {
     publishWsTicker(market: string, price: string, quantity: string) {
         
     }
-    updateDbOrders(order: Order, executedQty: number, fills: Fill[], market: string) {
+    updateDbOrders(order: Order, executedQty: number, fills: Fill[], market: string, userId: string) {
         RedisManager.getInstance().pushMessage({
             type: ORDER_UPDATE,
             data: {
@@ -302,6 +302,7 @@ export class Engine {
                 price: order.price.toString(),
                 quantity: order.quantity.toString(),
                 side: order.side,
+                // userId: userId
             }
         });
 
@@ -453,7 +454,6 @@ export class Engine {
         }
     }
     
-
     updateBalance(userId: string, baseAsset: string, quoteAsset: string, side: "buy" | "sell", fills: Fill[], executedQty: number) {
         if (side === "buy") {
             fills.forEach(fill => {
