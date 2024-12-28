@@ -1,5 +1,8 @@
+export const TRADE_ADDED = "TRADE_ADDED";
+export const ORDER_UPDATE = "ORDER_UPDATE";
+
 export type DbMessage = {
-    type: "TRADE_ADDED",
+    type: typeof TRADE_ADDED,
     data: {
         id: string,
         isBuyerMaker: boolean,
@@ -10,7 +13,7 @@ export type DbMessage = {
         market: string
     }
 } | {
-    type: "ORDER_UPDATE",
+    type: typeof ORDER_UPDATE,
     data: {
         orderId: string,
         executedQty: number,

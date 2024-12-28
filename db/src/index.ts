@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import { PrismaClient } from "@prisma/client";
-import { DbMessage } from "./types";
+import { ORDER_UPDATE, TRADE_ADDED } from "./types";
 
 const prisma = new PrismaClient();
 
@@ -13,7 +13,7 @@ async function main() {
     const response = await redisClient.rPop("db_processor");
     if (response) {
       const data: any = JSON.parse(response);
-      if (data.type === "TRADE_ADDED") {
+      if (data.type === TRADE_ADDED) {
         const market = data.data.market;
 
         const symbol = market.split("_")[0];
@@ -43,6 +43,39 @@ async function main() {
             side: side.toUpperCase(),
           },
         });
+      }
+      else if (data.type === ORDER_UPDATE) {
+        console.log("ORDER_PLACED");
+        console.log(data);
+        const market = data.data.market;
+
+        const symbol = market.split("_")[0];
+
+        const stock = await prisma.stock.findUnique({
+          where: {
+            symbol: symbol,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        const stockId = stock?.id;
+
+
+        // const trade = await prisma.orderHistory.create({
+        //   //@ts-ignore
+        //   data: {
+        //     price: parseFloat(data.data.price),
+        //     volume: parseFloat(data.data.volume),
+        //     userId: data.data.userId,
+        //     stockId: stockId,
+        //     side: data.data.side.toUpperCase(),
+        //     executedQty:,
+        //     remainingQty:,
+        //     status: "COMPLETED"
+        //   },
+        // });
       }
     }
   }
