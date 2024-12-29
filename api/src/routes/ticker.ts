@@ -11,8 +11,6 @@ tickersRouter.get("/", async (req, res) => {
 
     const symbol = market.split("_")[0];
 
-    console.log("symbol: ", symbol, "====================")
-
     if (!symbol) {
         return res.status(400).json({ error: "Missing Market parameter" });
     }

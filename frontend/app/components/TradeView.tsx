@@ -29,7 +29,7 @@ export function TradeView({
           chartRef.current,
           [
             ...klineData?.map((x: any) => {
-              const timestamp = new Date(x.timestamp).getTime(); // Convert to milliseconds
+              const timestamp = new Date(x.timestamp).getTime();
               // console.log(timestamp, "===================timestamp");
               // console.log(x.close, "===================close");
               return {
