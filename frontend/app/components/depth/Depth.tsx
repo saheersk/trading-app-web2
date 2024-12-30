@@ -13,22 +13,20 @@ export function Depth({ market }: {market: string}) {
 
     useEffect(() => {
 
-        SignalingManager.getInstance().registerCallback("depth", (data: any) => {
+        SignalingManager.getInstance().registerCallback("depth", (depth: any) => {
+            console.log(depth, "==================data depth");
             setBids((originalBids) => {
-                if (!data.bids || data.bids.length === 0) {
-                    if(!data.asks || data.asks.length === 0) {
-                        return [];
-                    }
-                    return originalBids; 
+                if (!depth.bids || depth.bids.length === 0) {
+                    return [];
                 }
         
                 const bidsAfterUpdate = [...(originalBids || [])];
         
                 // Update existing bids
                 for (let i = 0; i < bidsAfterUpdate.length; i++) {
-                    for (let j = 0; j < data.bids.length; j++) {
-                        if (bidsAfterUpdate[i][0] === data.bids[j][0]) {
-                            bidsAfterUpdate[i][1] = data.bids[j][1];
+                    for (let j = 0; j < depth.bids.length; j++) {
+                        if (bidsAfterUpdate[i][0] === depth.bids[j][0]) {
+                            bidsAfterUpdate[i][1] = depth.bids[j][1];
                             if (Number(bidsAfterUpdate[i][1]) === 0) {
                                 bidsAfterUpdate.splice(i, 1);
                                 i--; // Adjust index after splice
@@ -39,36 +37,33 @@ export function Depth({ market }: {market: string}) {
                 }
         
                 // Add new bids
-                for (let j = 0; j < data.bids.length; j++) {
+                for (let j = 0; j < depth.bids.length; j++) {
                     if (
-                        Number(data.bids[j][1]) !== 0 &&
-                        !bidsAfterUpdate.some((x) => x[0] === data.bids[j][0])
+                        Number(depth.bids[j][1]) !== 0 &&
+                        !bidsAfterUpdate.some((x) => x[0] === depth.bids[j][0])
                     ) {
-                        bidsAfterUpdate.push(data.bids[j]);
+                        bidsAfterUpdate.push(depth.bids[j]);
                     }
                 }
         
-                // Sort bids
-                bidsAfterUpdate.sort((x, y) => Number(y[0]) > Number(x[0]) ? -1 : 1);
+                // Sort bids in descending order of price
+                bidsAfterUpdate.sort((x, y) => Number(y[0]) - Number(x[0]));
         
-                return bidsAfterUpdate;
+                return depth.bids;
             });
         
             setAsks((originalAsks) => {
-                if (!data.asks || data.asks.length === 0) {
-                    if(!data.bids || data.bids.length === 0) {
-                        return [];
-                    }
-                    return originalAsks;
+                if (!depth.asks || depth.asks.length === 0) {
+                    return [];
                 }
         
                 const asksAfterUpdate = [...(originalAsks || [])];
         
                 // Update existing asks
                 for (let i = 0; i < asksAfterUpdate.length; i++) {
-                    for (let j = 0; j < data.asks.length; j++) {
-                        if (asksAfterUpdate[i][0] === data.asks[j][0]) {
-                            asksAfterUpdate[i][1] = data.asks[j][1];
+                    for (let j = 0; j < depth.asks.length; j++) {
+                        if (asksAfterUpdate[i][0] === depth.asks[j][0]) {
+                            asksAfterUpdate[i][1] = depth.asks[j][1];
                             if (Number(asksAfterUpdate[i][1]) === 0) {
                                 asksAfterUpdate.splice(i, 1);
                                 i--;
@@ -79,19 +74,19 @@ export function Depth({ market }: {market: string}) {
                 }
         
                 // Add new asks
-                for (let j = 0; j < data.asks.length; j++) {
+                for (let j = 0; j < depth.asks.length; j++) {
                     if (
-                        Number(data.asks[j][1]) !== 0 &&
-                        !asksAfterUpdate.some((x) => x[0] === data.asks[j][0])
+                        Number(depth.asks[j][1]) !== 0 &&
+                        !asksAfterUpdate.some((x) => x[0] === depth.asks[j][0])
                     ) {
-                        asksAfterUpdate.push(data.asks[j]);
+                        asksAfterUpdate.push(depth.asks[j]);
                     }
                 }
         
-                // Sort asks
-                asksAfterUpdate.sort((x, y) => Number(y[0]) > Number(x[0]) ? 1 : -1);
+                // Sort asks in ascending order of price
+                asksAfterUpdate.sort((x, y) => Number(x[0]) - Number(y[0]));
         
-                return asksAfterUpdate;
+                return depth.asks;
             });
         }, `DEPTH-${market}`);
         

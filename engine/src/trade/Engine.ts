@@ -270,6 +270,7 @@ export class Engine {
         
         const { fills, executedQty } = orderbook ? orderbook.addOrder(order) : {fills: [], executedQty: 0};
 
+        console.log(fills, "========fills========");
         // Add timestamp to each fill
         const timestamp = new Date().toISOString();
         const fillsWithTimestamp = fills.map(fill => ({
@@ -427,11 +428,20 @@ export class Engine {
             );
             const updatedBid = depth?.bids.find(x => Number(x[0]) === Number(price));
     
+            // RedisManager.getInstance().publishMessage(`depth@${market}`, {
+            //     stream: `depth@${market}`,
+            //     data: {
+            //         a: updatedAsks || [],
+            //         b: updatedBid ? [updatedBid] : [],
+            //         e: "depth"
+            //     }
+            // });
+
             RedisManager.getInstance().publishMessage(`depth@${market}`, {
                 stream: `depth@${market}`,
                 data: {
-                    a: updatedAsks || [],
-                    b: updatedBid ? [updatedBid] : [],
+                    a: depth?.asks || [],
+                    b: depth?.bids ? depth?.bids : [],
                     e: "depth"
                 }
             });
@@ -443,11 +453,19 @@ export class Engine {
             );
             const updatedAsk = depth?.asks.find(x => Number(x[0]) === Number(price));
     
+            // RedisManager.getInstance().publishMessage(`depth@${market}`, {
+            //     stream: `depth@${market}`,
+            //     data: {
+            //         a: updatedAsk ? [updatedAsk] : [],
+            //         b: updatedBids || [],
+            //         e: "depth"
+            //     }
+            // });
             RedisManager.getInstance().publishMessage(`depth@${market}`, {
                 stream: `depth@${market}`,
                 data: {
-                    a: updatedAsk ? [updatedAsk] : [],
-                    b: updatedBids || [],
+                    a: depth?.asks ? depth?.asks : [],
+                    b: depth?.bids || [],
                     e: "depth"
                 }
             });
