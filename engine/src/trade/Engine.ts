@@ -394,43 +394,43 @@ export class Engine {
         });
     }
 
-    publishWsKlineUpdates(market: string, fills: FillsWithTimestamp[]) {
-        const interval = 24 * 60 * 60 * 1000; // 1-minute interval for Kline data
-        const currentTime = new Date().getTime();
-        const bucketStartTime = Math.floor(currentTime / interval) * interval;
+    // publishWsKlineUpdates(market: string, fills: FillsWithTimestamp[]) {
+    //     const interval = 24 * 60 * 60 * 1000; // 1-minute interval for Kline data
+    //     const currentTime = new Date().getTime();
+    //     const bucketStartTime = Math.floor(currentTime / interval) * interval;
       
-        fills.forEach(fill => {
-          const klineKey = `kline@${market}`;
+    //     fills.forEach(fill => {
+    //       const klineKey = `kline@${market}`;
       
-          // Aggregate data into a Kline
-          const kline = RedisManager.getInstance().get(klineKey) || {
-            timestamp: bucketStartTime,
-            open: fill.price,
-            high: fill.price,
-            low: fill.price,
-            close: fill.price,
-            volume: 0,
-            trades: 0,
-          };
+    //       // Aggregate data into a Kline
+    //       const kline = RedisManager.getInstance().get(klineKey) || {
+    //         timestamp: bucketStartTime,
+    //         open: fill.price,
+    //         high: fill.price,
+    //         low: fill.price,
+    //         close: fill.price,
+    //         volume: 0,
+    //         trades: 0,
+    //       };
       
-          kline.high = Math.max(kline.high, Number(fill.price));
-          kline.low = Math.min(kline.low, Number(fill.price));
-          kline.close = fill.price;
-          kline.volume += fill.qty;
-          kline.trades += 1;
+    //       kline.high = Math.max(kline.high, Number(fill.price));
+    //       kline.low = Math.min(kline.low, Number(fill.price));
+    //       kline.close = fill.price;
+    //       kline.volume += fill.qty;
+    //       kline.trades += 1;
       
-          // Save updated Kline back to Redis
-        //   RedisManager.getInstance().set(klineKey, kline);
+    //       // Save updated Kline back to Redis
+    //     //   RedisManager.getInstance().set(klineKey, kline);
       
-          // Publish updated Kline to WebSocket clients
-          RedisManager.getInstance().publishMessage(`kline@${market}`, {
-            stream: `kline@${market}`,
-            data: {
-                // kline: kline
-            },
-          });
-        });
-      }
+    //       // Publish updated Kline to WebSocket clients
+    //       RedisManager.getInstance().publishMessage(`kline@${market}`, {
+    //         stream: `kline@${market}`,
+    //         data: {
+    //             // kline: kline
+    //         },
+    //       });
+    //     });
+    // }
       
     sendUpdatedDepthAt(price: string, market: string) {
         const orderbook = this.orderBooks.find(o => o.ticker() === market);

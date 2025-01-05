@@ -67,6 +67,7 @@ export class SignalingManager {
                         }
                         callback(newTrade);
                     }
+                    if(type === "kline"){}
                 });
             }
         }

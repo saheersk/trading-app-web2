@@ -6,6 +6,7 @@ const enum Side {
   SELL = "SELL",
   BUY = "BUY",
 }
+
 interface Trade {
   price: string;
   volume: string;
