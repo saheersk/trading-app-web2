@@ -7,13 +7,12 @@ import { AnyARecord } from "dns";
 
 export const MarketBar = ({market}: {market: string}) => {
     const [ticker, setTicker] = useState<any>(null);
-console.log(ticker, "ticker=============")
+
     useEffect(() => {
         getTicker(market).then(setTicker);
         const signalingManager = SignalingManager.getInstance();
 
         const tickerCallback = (data: any) => {
-            console.log(data, "data=============")
             setTicker((prevTicker: any) => {
                 const latestPrice = Number(data?.lastPrice ?? prevTicker?.latestPrice ?? 0);
                 const volume24h = prevTicker?.volume24h + Number(data?.volume ?? 0);

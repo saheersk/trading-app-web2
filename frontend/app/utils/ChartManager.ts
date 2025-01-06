@@ -84,6 +84,19 @@ export class ChartManager {
       this.lastUpdateTime = updatedPrice.time;
     }
   }
+  
+  public bulkUpdate(klineData: any[]) {
+    klineData.forEach((data) => {
+      this.candleSeries.update({
+        time: (data.timestamp / 1000) as UTCTimestamp,
+        open: data.open,
+        high: data.high,
+        low: data.low,
+        close: data.close,
+      });
+    });
+  }
+
   public destroy() {
     this.chart.remove();
   }
