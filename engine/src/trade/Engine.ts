@@ -307,15 +307,15 @@ export class Engine {
             }
         });
 
-        fills.forEach(fill => {
-            RedisManager.getInstance().pushMessage({
-                type: ORDER_UPDATE,
-                data: {
-                    orderId: fill.markerOrderId,
-                    executedQty: fill.qty
-                }
-            });
-        });
+        // fills.forEach(fill => {
+        //     RedisManager.getInstance().pushMessage({
+        //         type: ORDER_UPDATE,
+        //         data: {
+        //             orderId: fill.markerOrderId,
+        //             executedQty: fill.qty
+        //         }
+        //     });
+        // });
     }
 
     createDbTrades(fills: Fill[], market: string, userId: string, side: any) {
