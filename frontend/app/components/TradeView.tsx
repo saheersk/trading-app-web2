@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChartManager } from "../utils/ChartManager";
 import { getKlines } from "../utils/httpClient";
 import { KLine } from "../utils/types";
@@ -68,49 +68,52 @@ export function TradeView({ market }: { market: string }) {
   const chartManagerRef = useRef<ChartManager>(null);
   // const klineDataRef = useRef<KLine[]>([]);
   const klineDataRef = useRef<any>([]);
+  const [klineTime, setKlineTime] = useState("1h");
+
+  const fetchInitialKlines = async () => {
+    try {
+      const klineData = await getKlines(
+        market,
+        klineTime,
+        Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 7) / 1000),
+        Math.floor(Date.now() / 1000)
+      );
+      console.log(klineData, "kline in fe==============");
+      klineDataRef.current = klineData
+        .map((x) => ({
+          close: parseFloat(x.close),
+          high: parseFloat(x.high),
+          low: parseFloat(x.low),
+          open: parseFloat(x.open),
+          volume: parseFloat(x.volume),
+          trades: x.trades,
+          //@ts-ignore
+          timestamp: new Date(x?.timestamp).getTime(), // Timestamp in ms
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      if (chartRef.current) {
+        if (chartManagerRef.current) {
+          chartManagerRef.current.destroy();
+        }
+        //@ts-ignore
+        chartManagerRef.current = new ChartManager(
+          chartRef.current,
+          klineDataRef.current,
+          {
+            background: "#0e0f14",
+            color: "white",
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch Kline data:", error);
+    }
+  };
+
 
   useEffect(() => {
-    const fetchInitialKlines = async () => {
-      try {
-        const klineData = await getKlines(
-          market,
-          "1h",
-          Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 7) / 1000),
-          Math.floor(Date.now() / 1000)
-        );
-        console.log(klineData, "kline in fe==============");
-        klineDataRef.current = klineData
-          .map((x) => ({
-            close: parseFloat(x.close),
-            high: parseFloat(x.high),
-            low: parseFloat(x.low),
-            open: parseFloat(x.open),
-            volume: parseFloat(x.volume),
-            trades: x.trades,
-            //@ts-ignore
-            timestamp: new Date(x?.timestamp).getTime(), // Timestamp in ms
-          }))
-          .sort((a, b) => a.timestamp - b.timestamp);
-
-        if (chartRef.current) {
-          if (chartManagerRef.current) {
-            chartManagerRef.current.destroy();
-          }
-          //@ts-ignore
-          chartManagerRef.current = new ChartManager(
-            chartRef.current,
-            klineDataRef.current,
-            {
-              background: "#0e0f14",
-              color: "white",
-            }
-          );
-        }
-      } catch (error) {
-        console.error("Failed to fetch Kline data:", error);
-      }
-    };
-
+  
     fetchInitialKlines();
 
     // Real-time updates using SignalingManager
@@ -148,38 +151,57 @@ export function TradeView({ market }: { market: string }) {
     };
   }, [market]);
 
+  useEffect(() => {
+    fetchInitialKlines();
+  }, [klineTime]);
+
   const updateChartWithNewTrade = (newTrade: {
     timestamp: number;
     price: number;
     volume: number;
   }) => {
     console.log("New trade received:", newTrade);
-  
+
     // Convert timestamp to milliseconds and calculate bucket start time
     const timestampInMillis = new Date(newTrade.timestamp).getTime();
     const interval = 60 * 60 * 1000; // 1 hour in milliseconds
     const bucketStartTime = Math.floor(timestampInMillis / interval) * interval;
-  
-    console.log({
-      newTradeTimestamp: newTrade.timestamp,
-      bucketStartTime,
-      timestampInMillis,
-    }, "Timestamp Debug");
-  
-    let updated = false;
-  
-    // Check if the last candle matches the bucket start time
-    console.log(klineDataRef.current[klineDataRef.current.length - 1].timestamp, "timestamp==========")
-    console.log(klineDataRef.current[klineDataRef.current.length - 1].timestamp === bucketStartTime, "================", bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp)
-    if (
-      klineDataRef.current.length > 0 && (
-        klineDataRef.current[klineDataRef.current.length - 1].timestamp === bucketStartTime ||
 
-        (bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp < 60 * 60 * 1000 &&
-        bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp >= 0)
-      )
+    console.log(
+      {
+        newTradeTimestamp: newTrade.timestamp,
+        bucketStartTime,
+        timestampInMillis,
+      },
+      "Timestamp Debug"
+    );
+
+    let updated = false;
+
+    // Check if the last candle matches the bucket start time
+    console.log(
+      klineDataRef.current[klineDataRef.current.length - 1].timestamp,
+      "timestamp=========="
+    );
+    console.log(
+      klineDataRef.current[klineDataRef.current.length - 1].timestamp ===
+        bucketStartTime,
+      "================",
+      bucketStartTime -
+        klineDataRef.current[klineDataRef.current.length - 1].timestamp
+    );
+    if (
+      klineDataRef.current.length > 0 &&
+      (klineDataRef.current[klineDataRef.current.length - 1].timestamp ===
+        bucketStartTime ||
+        (bucketStartTime -
+          klineDataRef.current[klineDataRef.current.length - 1].timestamp <
+          60 * 60 * 1000 &&
+          bucketStartTime -
+            klineDataRef.current[klineDataRef.current.length - 1].timestamp >=
+            0))
     ) {
-      console.log("exitingg========kline")
+      console.log("exitingg========kline");
       const lastKline = klineDataRef.current[klineDataRef.current.length - 1];
       // Update the last candle
       klineDataRef.current[klineDataRef.current.length - 1] = {
@@ -192,7 +214,7 @@ export function TradeView({ market }: { market: string }) {
       };
       updated = true;
     }
-  
+
     // If no matching candle, create a new one
     if (!updated) {
       klineDataRef.current.push({
@@ -205,22 +227,22 @@ export function TradeView({ market }: { market: string }) {
         trades: 1,
       });
     }
-  
+
     // Ensure the candles remain sorted by timestamp
     klineDataRef.current.sort((a: any, b: any) => a.timestamp - b.timestamp);
     console.log(klineDataRef.current, "Updated and Sorted Klines");
-  
+
     // Update the chart with the modified data
     if (chartManagerRef.current) {
       const updatedCandle = klineDataRef.current.find(
         (kline: any) => kline.timestamp === bucketStartTime
       );
-  
+
       console.log(updatedCandle, "Updated Candle for Chart", updated);
-  
+
       if (updatedCandle) {
         chartManagerRef.current.update({
-          time: updatedCandle.timestamp / 1000, 
+          time: updatedCandle.timestamp / 1000,
           open: updatedCandle.open,
           high: updatedCandle.high,
           low: updatedCandle.low,
@@ -229,12 +251,38 @@ export function TradeView({ market }: { market: string }) {
         });
       }
     }
-  };  
+  };
 
   return (
-    <div
-      ref={chartRef}
-      style={{ height: "520px", width: "100%", marginTop: 4 }}
-    ></div>
+    <div className="w-full">
+      <div
+        ref={chartRef}
+        style={{ height: "520px", width: "100%" }} 
+        className="relative w-full"
+      >
+        <div className="absolute top-0 left-0 w-full p-2 z-10">
+          <label
+            htmlFor="timePeriod"
+            className="block text-xs text-slate-400 font-medium"
+          >
+            Select Time Period
+          </label>
+          <select
+            id="timePeriod"
+            className="mt-1 p-2 text-base bg-slate-700 border border-slate-600 rounded-md"
+            value={klineTime}
+            onChange={(e) => setKlineTime(e.target.value)}
+          >
+            <option value="1m">1 M</option>
+            <option value="5m">5 M</option>
+            <option value="15m">15 M</option>
+            <option value="30m">30 M</option>
+            <option value="1h">1 Hour</option>
+            <option value="4h">4 Hours</option>
+            <option value="1d">1 Day</option>
+          </select>
+        </div>
+      </div>
+    </div>
   );
 }
