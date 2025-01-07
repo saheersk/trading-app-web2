@@ -14,48 +14,25 @@ interface Trade {
   side: "BUY" | "SELL";
 }
 
-export default function Trades({ market }: { market: string }) {
+export default function Trades({ market, tradesData }: { market: string, tradesData: any }) {
   const [trades, setTrades] = useState<Trade[]>([]);
 
   useEffect(() => {
     getTrades(market).then((data: any) => {
       setTrades(data);
     });
-    SignalingManager.getInstance().registerCallback(
-      "trade",
-      (data: any) => {
-        setTrades((previousTrades) => {
-          const updatedTrades = [...(previousTrades || [])];
-
-          updatedTrades.push(data);
-
-          updatedTrades.sort(
-            (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-          );
-
-          return updatedTrades.slice(0, 20);
-        });
-      },
-      `TRADE-${market}`
-    );
-
-    SignalingManager.getInstance().sendMessage({
-      method: "SUBSCRIBE",
-      params: [`trade@${market}`],
-    });
-
-    return () => {
-      SignalingManager.getInstance().sendMessage({
-        method: "UNSUBSCRIBE",
-        params: [`trade@${market}`],
-      });
-      SignalingManager.getInstance().deRegisterCallback(
-        "trade",
-        `TRADE-${market}`
-      );
-    };
   }, [market]);
+
+  useEffect(() => {
+    console.log("trade updated", tradesData);
+    setTrades((previousTrades: any) => {
+      const updatedTrades = [...(previousTrades || []), tradesData];
+      updatedTrades.sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      return updatedTrades.slice(0, 20);
+    });
+  }, [tradesData]);
 
   return (
     <div>

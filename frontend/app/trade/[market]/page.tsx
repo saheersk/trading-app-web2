@@ -4,8 +4,9 @@ import { SwapUI } from "@/app/components/SwapUI";
 import { TradeView } from "@/app/components/TradeView";
 import Trades from "@/app/components/Trades";
 import { Depth } from "@/app/components/depth/Depth";
+import { SignalingManager } from "@/app/utils/SignalingManager";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 
 // export default function Page() {
 //     const { market } = useParams();
@@ -40,6 +41,36 @@ import { useState } from "react";
 export default function Page() {
     const { market } = useParams();
     const [activeTab, setActiveTab] = useState<"trades" | "depth">("depth");
+    const [trades, setTrades] = useState<any>({});
+    
+
+    useEffect(() => {
+        console.log("market", market);
+        SignalingManager.getInstance().registerCallback(
+              "trade",
+              (data: any) => {
+                    console.log(data, "==================data");
+                    setTrades(data);
+              },
+              `TRADE-${market}`
+            );
+        
+            SignalingManager.getInstance().sendMessage({
+              method: "SUBSCRIBE",
+              params: [`trade@${market}`],
+            });
+        
+            return () => {
+              SignalingManager.getInstance().sendMessage({
+                method: "UNSUBSCRIBE",
+                params: [`trade@${market}`],
+              });
+              SignalingManager.getInstance().deRegisterCallback(
+                "trade",
+                `TRADE-${market}`
+              );
+            };
+    }, [market]);
 
     return (
         <div className="flex flex-row flex-1">
@@ -69,11 +100,29 @@ export default function Page() {
                                 </button>
                                 
                             </div>
-                            {activeTab === "trades" ? (
-                                <Trades market={market as string} />
+                            {/* {activeTab === "trades" ? (
+                                <Trades market={market as string} tradesData={trades} />
                             ) : (
                                 <Depth market={market as string} />
-                            )}
+                            )} */}
+
+        <div className="flex-1 relative">
+          <div
+            className={`absolute inset-0 ${
+              activeTab === "depth" ? "block" : "hidden"
+            }`}
+          >
+            <Depth market={market as string} latestPrice={trades?.price} />
+          </div>
+
+          <div
+            className={`absolute inset-0 ${
+              activeTab === "trades" ? "block" : "hidden"
+            }`}
+          >
+            <Trades market={market as string} tradesData={trades} />
+          </div>
+        </div>
                         </div>
                 </div>
             </div>
