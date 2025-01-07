@@ -5,7 +5,7 @@ import { Depth, KLine, Ticker, Trade } from "./types";
 const BASE_URL = "http://localhost:3000/api/v1";
 
 export async function getTicker(market: string): Promise<Ticker> {
-    const tickers = await getTickers();
+    const tickers = await getTickers(market);
 
     if (!tickers) {
         throw new Error(`No ticker found for ${market}`);
@@ -14,8 +14,8 @@ export async function getTicker(market: string): Promise<Ticker> {
     return tickers;
 }
 
-export async function getTickers(): Promise<Ticker[]> {
-    const response = await axios.get(`${BASE_URL}/tickers?market=TATA_INR`);
+export async function getTickers(market: any): Promise<Ticker[]> {
+    const response = await axios.get(`${BASE_URL}/tickers?market=${market}`);
     return response.data.data;
 }
 
@@ -25,7 +25,7 @@ export async function getDepth(market: string): Promise<Depth> {
     return response.data;
 }
 export async function getTrades(market: string): Promise<Trade[]> {
-    const response = await axios.get(`${BASE_URL}/trades?market=TATA_INR`);
+    const response = await axios.get(`${BASE_URL}/trades?market=${market}`);
     return response.data;
 }
 
