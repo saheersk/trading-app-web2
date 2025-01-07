@@ -15,7 +15,7 @@ import { KLine } from "../utils/types";
 //     const init = async () => {
 //       let klineData: KLine[] = [];
 //       try {
-//         klineData = await getKlines(market, "1h", Math.floor((new Date().getTime() - 1000 * 60 * 60 * 24 * 7) / 1000), Math.floor(new Date().getTime() / 1000)); 
+//         klineData = await getKlines(market, "1h", Math.floor((new Date().getTime() - 1000 * 60 * 60 * 24 * 7) / 1000), Math.floor(new Date().getTime() / 1000));
 //       } catch (e) { }
 
 //       if (chartRef) {
@@ -23,7 +23,7 @@ import { KLine } from "../utils/types";
 //           chartManagerRef.current.destroy();
 //         }
 //         console.log(klineData, 'kline in fe==============')
-  
+
 //         const chartManager = new ChartManager(
 //           chartRef.current,
 //           [
@@ -61,14 +61,9 @@ import { KLine } from "../utils/types";
 //   );
 // }
 
-
 import { SignalingManager } from "../utils/SignalingManager";
 
-export function TradeView({
-  market,
-}: {
-  market: string;
-}) {
+export function TradeView({ market }: { market: string }) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartManagerRef = useRef<ChartManager>(null);
   // const klineDataRef = useRef<KLine[]>([]);
@@ -83,25 +78,33 @@ export function TradeView({
           Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 7) / 1000),
           Math.floor(Date.now() / 1000)
         );
-        console.log(klineData, 'kline in fe==============')
-        klineDataRef.current = klineData.map((x) => ({
-          close: parseFloat(x.close),
-          high: parseFloat(x.high),
-          low: parseFloat(x.low),
-          open: parseFloat(x.open),
-          volume: parseFloat(x.volume),
-          trades: x.trades,
-          timestamp: new Date(x.timestamp).getTime(), // Timestamp in ms
-        })).sort((a, b) => a.timestamp - b.timestamp);
+        console.log(klineData, "kline in fe==============");
+        klineDataRef.current = klineData
+          .map((x) => ({
+            close: parseFloat(x.close),
+            high: parseFloat(x.high),
+            low: parseFloat(x.low),
+            open: parseFloat(x.open),
+            volume: parseFloat(x.volume),
+            trades: x.trades,
+            //@ts-ignore
+            timestamp: new Date(x?.timestamp).getTime(), // Timestamp in ms
+          }))
+          .sort((a, b) => a.timestamp - b.timestamp);
 
         if (chartRef.current) {
           if (chartManagerRef.current) {
             chartManagerRef.current.destroy();
           }
-          chartManagerRef.current = new ChartManager(chartRef.current, klineDataRef.current, {
-            background: "#0e0f14",
-            color: "white",
-          });
+          //@ts-ignore
+          chartManagerRef.current = new ChartManager(
+            chartRef.current,
+            klineDataRef.current,
+            {
+              background: "#0e0f14",
+              color: "white",
+            }
+          );
         }
       } catch (error) {
         console.error("Failed to fetch Kline data:", error);
@@ -110,21 +113,24 @@ export function TradeView({
 
     fetchInitialKlines();
 
-   
     // Real-time updates using SignalingManager
     const signalingManager = SignalingManager.getInstance();
 
     const tradeCallback = (data: any) => {
       console.log(data, "tradeCallback=======");
       const parsedTrade = {
-        timestamp: data.timestamp, 
+        timestamp: data.timestamp,
         price: parseFloat(data.price),
         volume: parseFloat(data.volume),
       };
       updateChartWithNewTrade(parsedTrade);
     };
 
-    signalingManager.registerCallback("trade", tradeCallback, `TRADE-${market}`);
+    signalingManager.registerCallback(
+      "trade",
+      tradeCallback,
+      `TRADE-${market}`
+    );
     signalingManager.sendMessage({
       method: "SUBSCRIBE",
       params: [`trade@${market}`],
@@ -142,73 +148,88 @@ export function TradeView({
     };
   }, [market]);
 
-  const updateChartWithNewTrade = (newTrade: { timestamp: number; price: number; volume: number }) => {
-    console.log('newTrade.timestamp', newTrade.timestamp); // Add this line
-
-  // Check if it's a valid ISO string
-  const timestampInMillis = new Date(newTrade.timestamp).getTime();
-  console.log('timestampInMillis', timestampInMillis); // Add this line to see the result of new Date()
-
-  const interval = 60 * 60 * 1000; // 1 hour in milliseconds
-  const bucketStartTime = Math.floor(timestampInMillis / interval) * interval;
-
-  console.log({ newTradeTimestamp: newTrade.timestamp, bucketStartTime }, "Timestamp Debug");
-
-
+  const updateChartWithNewTrade = (newTrade: {
+    timestamp: number;
+    price: number;
+    volume: number;
+  }) => {
+    console.log("New trade received:", newTrade);
+  
+    // Convert timestamp to milliseconds and calculate bucket start time
+    const timestampInMillis = new Date(newTrade.timestamp).getTime();
+    const interval = 60 * 60 * 1000; // 1 hour in milliseconds
+    const bucketStartTime = Math.floor(timestampInMillis / interval) * interval;
+  
+    console.log({
+      newTradeTimestamp: newTrade.timestamp,
+      bucketStartTime,
+      timestampInMillis,
+    }, "Timestamp Debug");
+  
     let updated = false;
   
-  // Update or create the candle
-  klineDataRef.current = klineDataRef.current.map((kline) => {
-    // Check if the kline already exists with the same timestamp
-    if (kline.timestamp === bucketStartTime) {
-      updated = true;
-      return {
-        ...kline,
-        high: Math.max(kline.high, newTrade.price),
-        low: Math.min(kline.low, newTrade.price),
+    // Check if the last candle matches the bucket start time
+    console.log(klineDataRef.current[klineDataRef.current.length - 1].timestamp, "timestamp==========")
+    console.log(klineDataRef.current[klineDataRef.current.length - 1].timestamp === bucketStartTime, "================", bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp)
+    if (
+      klineDataRef.current.length > 0 && (
+        klineDataRef.current[klineDataRef.current.length - 1].timestamp === bucketStartTime ||
+
+        (bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp < 60 * 60 * 1000 &&
+        bucketStartTime - klineDataRef.current[klineDataRef.current.length - 1].timestamp >= 0)
+      )
+    ) {
+      console.log("exitingg========kline")
+      const lastKline = klineDataRef.current[klineDataRef.current.length - 1];
+      // Update the last candle
+      klineDataRef.current[klineDataRef.current.length - 1] = {
+        ...lastKline,
+        high: Math.max(lastKline.high, newTrade.price),
+        low: Math.min(lastKline.low, newTrade.price),
         close: newTrade.price,
-        volume: kline.volume + newTrade.volume,
-        trades: kline.trades + 1,
+        volume: lastKline.volume + newTrade.volume,
+        trades: lastKline.trades + 1,
       };
+      updated = true;
     }
-    return kline;
-  });
-
-  // If no matching candle, create a new one
-  if (!updated) {
-    klineDataRef.current.push({
-      timestamp: bucketStartTime,
-      open: newTrade.price,
-      high: newTrade.price,
-      low: newTrade.price,
-      close: newTrade.price,
-      volume: newTrade.volume,
-      trades: 1,
-    });
-  }
-
-  // Sort the candles to maintain order
-  klineDataRef.current.sort((a, b) => a.timestamp - b.timestamp);
-  console.log(klineDataRef.current, "Sorted Klines Debug");
-
-  // Update the chart with the modified candles
-  if (chartManagerRef.current) {
-    const updatedCandle = klineDataRef.current.find(
-      (kline) => kline.timestamp === bucketStartTime
-    );
-    console.log(updatedCandle, 'updatedCandle in updateChartWithNewTrade==============');
-    if (updatedCandle) {
-      chartManagerRef.current.update({
-        time: updatedCandle.timestamp / 1000, // Convert to seconds for Lightweight Charts
-        open: updatedCandle.open,
-        high: updatedCandle.high,
-        low: updatedCandle.low,
-        close: updatedCandle.close,
-        newCandleInitiated: !updated, 
+  
+    // If no matching candle, create a new one
+    if (!updated) {
+      klineDataRef.current.push({
+        timestamp: bucketStartTime,
+        open: newTrade.price,
+        high: newTrade.price,
+        low: newTrade.price,
+        close: newTrade.price,
+        volume: newTrade.volume,
+        trades: 1,
       });
     }
-  }
-};
+  
+    // Ensure the candles remain sorted by timestamp
+    klineDataRef.current.sort((a: any, b: any) => a.timestamp - b.timestamp);
+    console.log(klineDataRef.current, "Updated and Sorted Klines");
+  
+    // Update the chart with the modified data
+    if (chartManagerRef.current) {
+      const updatedCandle = klineDataRef.current.find(
+        (kline: any) => kline.timestamp === bucketStartTime
+      );
+  
+      console.log(updatedCandle, "Updated Candle for Chart", updated);
+  
+      if (updatedCandle) {
+        chartManagerRef.current.update({
+          time: updatedCandle.timestamp / 1000, 
+          open: updatedCandle.open,
+          high: updatedCandle.high,
+          low: updatedCandle.low,
+          close: updatedCandle.close,
+          newCandleInitiated: !updated,
+        });
+      }
+    }
+  };  
 
   return (
     <div

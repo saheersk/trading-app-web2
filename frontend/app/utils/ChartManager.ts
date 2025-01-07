@@ -73,7 +73,7 @@ export class ChartManager {
     }
 
     this.candleSeries.update({
-      time: (this.lastUpdateTime / 1000) as UTCTimestamp,
+      time: updatedPrice.time ? updatedPrice.time : (this.lastUpdateTime / 1000) as UTCTimestamp,
       close: updatedPrice.close,
       low: updatedPrice.low,
       high: updatedPrice.high,
@@ -81,20 +81,29 @@ export class ChartManager {
     });
 
     if (updatedPrice.newCandleInitiated) {
-      this.lastUpdateTime = updatedPrice.time;
+      if (updatedPrice.time > this.lastUpdateTime) {
+        this.lastUpdateTime = updatedPrice.time;
+      }
     }
   }
   
-  public bulkUpdate(klineData: any[]) {
-    klineData.forEach((data) => {
-      this.candleSeries.update({
-        time: (data.timestamp / 1000) as UTCTimestamp,
-        open: data.open,
-        high: data.high,
-        low: data.low,
-        close: data.close,
-      });
+  public bulkUpdate(klineData: any) {
+    this.candleSeries.update({
+      time: (this.lastUpdateTime / 1000) as UTCTimestamp,
+      close: klineData.close,
+      low: klineData.low,
+      high: klineData.high,
+      open: klineData.open,
     });
+    // klineData.forEach((data) => {
+    //   this.candleSeries.update({
+    //     time: (data.timestamp / 1000) as UTCTimestamp,
+    //     open: data.open,
+    //     high: data.high,
+    //     low: data.low,
+    //     close: data.close,
+    //   });
+    // });
   }
 
   public destroy() {
