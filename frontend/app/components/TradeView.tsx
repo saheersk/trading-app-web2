@@ -78,7 +78,7 @@ export function TradeView({ market }: { market: string }) {
         Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 7) / 1000),
         Math.floor(Date.now() / 1000)
       );
-      console.log(klineData, "kline in fe==============");
+
       klineDataRef.current = klineData
         .map((x) => ({
           close: parseFloat(x.close),
@@ -88,7 +88,7 @@ export function TradeView({ market }: { market: string }) {
           volume: parseFloat(x.volume),
           trades: x.trades,
           //@ts-ignore
-          timestamp: new Date(x?.timestamp).getTime(), // Timestamp in ms
+          timestamp: new Date(x?.timestamp).getTime(),
         }))
         .sort((a, b) => a.timestamp - b.timestamp);
 
@@ -120,7 +120,6 @@ export function TradeView({ market }: { market: string }) {
     const signalingManager = SignalingManager.getInstance();
 
     const tradeCallback = (data: any) => {
-      console.log(data, "tradeCallback=======");
       const parsedTrade = {
         timestamp: data.timestamp,
         price: parseFloat(data.price),
@@ -178,18 +177,6 @@ export function TradeView({ market }: { market: string }) {
 
     let updated = false;
 
-    // Check if the last candle matches the bucket start time
-    console.log(
-      klineDataRef.current[klineDataRef.current.length - 1].timestamp,
-      "timestamp=========="
-    );
-    console.log(
-      klineDataRef.current[klineDataRef.current.length - 1].timestamp ===
-        bucketStartTime,
-      "================",
-      bucketStartTime -
-        klineDataRef.current[klineDataRef.current.length - 1].timestamp
-    );
     if (
       klineDataRef.current.length > 0 &&
       (klineDataRef.current[klineDataRef.current.length - 1].timestamp ===
@@ -201,7 +188,6 @@ export function TradeView({ market }: { market: string }) {
             klineDataRef.current[klineDataRef.current.length - 1].timestamp >=
             0))
     ) {
-      console.log("exitingg========kline");
       const lastKline = klineDataRef.current[klineDataRef.current.length - 1];
       // Update the last candle
       klineDataRef.current[klineDataRef.current.length - 1] = {
@@ -230,15 +216,12 @@ export function TradeView({ market }: { market: string }) {
 
     // Ensure the candles remain sorted by timestamp
     klineDataRef.current.sort((a: any, b: any) => a.timestamp - b.timestamp);
-    console.log(klineDataRef.current, "Updated and Sorted Klines");
 
     // Update the chart with the modified data
     if (chartManagerRef.current) {
       const updatedCandle = klineDataRef.current.find(
         (kline: any) => kline.timestamp === bucketStartTime
       );
-
-      console.log(updatedCandle, "Updated Candle for Chart", updated);
 
       if (updatedCandle) {
         chartManagerRef.current.update({
