@@ -36,7 +36,7 @@ export async function get24hMetricsDetails(symbol: string) {
         orderBy: { timestamp: "asc" },
     });
 
-    let trade24hAgo = null;
+    let trade24hAgo: any = null;
     if (tradesIn24h.length > 0) {
         trade24hAgo = await prisma.trade.findFirst({
             where: {

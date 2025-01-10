@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  timescaledb:
+  timescale-db:
     image: timescale/timescaledb:latest-pg12
-    container_name: timescaledb
+    container_name: timescale-db
     ports:
       - "5432:5432"
     environment:
@@ -30,6 +30,85 @@ services:
       POSTGRES_PASSWORD: my_password
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    
+  next-app:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["npm", "run", "start"]
+    depends_on:
+      - postgres
+      - redis
+      - timescale-db
+  api:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/usr/src/api
+      - /usr/src/api/node_modules
+    command: ["npm", "run", "start"]
+    depends_on:
+      - postgres
+      - redis
+      - timescale-db
+
+  db:
+    build:
+      context: ../db
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/usr/src/db
+      - /usr/src/db/node_modules
+    command: ["npm", "run", "start"]
+    depends_on:
+      - postgres
+      - timescale-db
+
+  # engine:
+  #   build:
+  #     context: ../engine
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - NODE_ENV=development
+  #   volumes:
+  #     - .:/usr/src/engine
+  #     - /usr/src/engine/node_modules
+  #   command: ["npm", "run", "start"]
+  #   depends_on:
+  #     - db
+  #     - timescale-db
+
+  # ws:
+  #   build:
+  #     context: ../ws
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - NODE_ENV=development
+  #   volumes:
+  #     - .:/usr/src/ws
+  #     - /usr/src/ws/node_modules
+  #   command: ["npm", "run", "start"]
+  #   depends_on:
+  #     - api
+  #     - redis
+  #     - timescale-db
+  
 
 volumes:
   timescale-data:

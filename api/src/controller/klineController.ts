@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 //@ts-ignore
 export const generateKlines = async (market, startTime, endTime, interval) => {
-    const trades = await prisma.trade.findMany({
+    const trades: any = await prisma.trade.findMany({
         where: {
             stock: {
                 symbol: market, 
@@ -15,7 +15,7 @@ export const generateKlines = async (market, startTime, endTime, interval) => {
         },
     });
 
-    const klineBuckets = new Map();
+    const klineBuckets: any = new Map();
 
     trades.forEach((trade) => {
         const tradeTime = new Date(trade.timestamp);
@@ -41,8 +41,8 @@ export const generateKlines = async (market, startTime, endTime, interval) => {
         }
     });
 
-    const klines = Array.from(klineBuckets.values())
-        .sort((a, b) => a.timestamp - b.timestamp);
+    const klines: any = Array.from(klineBuckets.values())
+        .sort((a: any, b: any) => a.timestamp - b.timestamp);
 
     return klines;
 };
