@@ -18,7 +18,7 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-  
+
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -33,4 +33,4 @@ services:
 
 volumes:
   timescale-data:
-  postgres-data: 
+  postgres-data:
