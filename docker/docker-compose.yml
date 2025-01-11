@@ -18,6 +18,7 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    command: ["redis-server", "--bind", "0.0.0.0"]
 
   postgres:
     image: postgres:latest
@@ -47,18 +48,19 @@ services:
       - postgres
       - redis
       - timescale-db
+
   api:
     build:
       context: ../api
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
+    env_file:
+      - ../api/.env
     volumes:
-      - .:/usr/src/api
+      - ../api:/usr/src/api
       - /usr/src/api/node_modules
-    command: ["npm", "run", "start"]
+      - /usr/src/api/prisma
     depends_on:
       - postgres
       - redis
@@ -68,14 +70,15 @@ services:
     build:
       context: ../db
       dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=development
+    env_file:
+      - ../db/.env
     volumes:
-      - .:/usr/src/db
+      - ../db:/usr/src/db
       - /usr/src/db/node_modules
-    command: ["npm", "run", "start"]
+      - /usr/src/db/prisma
     depends_on:
       - postgres
+      - redis
       - timescale-db
 
   # engine:
