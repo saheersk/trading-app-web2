@@ -66,34 +66,35 @@ services:
       - redis
       - timescale-db
 
-  db:
+  # db:
+  #   build:
+  #     context: ../db
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ../db/.env
+  #   volumes:
+  #     - ../db:/usr/src/db
+  #     - /usr/src/db/node_modules
+  #     - /usr/src/db/prisma
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - timescale-db
+
+  engine:
     build:
-      context: ../db
+      context: ../engine
       dockerfile: Dockerfile
-    env_file:
-      - ../db/.env
+    environment:
+      - NODE_ENV=development
     volumes:
-      - ../db:/usr/src/db
-      - /usr/src/db/node_modules
-      - /usr/src/db/prisma
+      - ../engine:/usr/src/engine
+      - /usr/src/engine/node_modules
+    command: ["npm", "run", "start"]
     depends_on:
-      - postgres
+      # - db
       - redis
       - timescale-db
-
-  # engine:
-  #   build:
-  #     context: ../engine
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     - NODE_ENV=development
-  #   volumes:
-  #     - .:/usr/src/engine
-  #     - /usr/src/engine/node_modules
-  #   command: ["npm", "run", "start"]
-  #   depends_on:
-  #     - db
-  #     - timescale-db
 
   # ws:
   #   build:
