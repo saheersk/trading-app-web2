@@ -41,7 +41,7 @@ export class Engine {
     // private trades: Map<string, Trade[]> = new Map();
 
     constructor() {
-        let snapshot = null;
+        let snapshot: any = null;
         try {
             if (process.env.WITH_SNAPSHOT){
                 snapshot = fs.readFileSync("./snapshot.json");

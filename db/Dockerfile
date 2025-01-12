@@ -2,16 +2,16 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/db
 
-RUN apk add --no-cache python3 make g++ \
+RUN apk add --no-cache python3 make g++ openssl \
     && npm install -g typescript
 
-COPY ./package*.json ./
+COPY package*.json ./
+
+COPY ./prisma ./prisma
 
 RUN npm install
 
-COPY prisma ./prisma
-
-RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 COPY . ./
 
