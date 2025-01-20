@@ -256,10 +256,10 @@ export function TradeView({ market }: { market: string }) {
             value={klineTime}
             onChange={(e) => setKlineTime(e.target.value)}
           >
-            <option value="1m">1 M</option>
-            <option value="5m">5 M</option>
-            <option value="15m">15 M</option>
-            <option value="30m">30 M</option>
+            <option value="1m">1 Month</option>
+            <option value="5m">5 Month</option>
+            <option value="15m">15 Month</option>
+            <option value="30m">30 Month</option>
             <option value="1h">1 Hour</option>
             <option value="4h">4 Hours</option>
             <option value="1d">1 Day</option>
