@@ -33,7 +33,7 @@ app.use("/api/v1/markets", marketRouter);
 // // Function to generate realistic trade data over one year (1-hour intervals)
 // //@ts-ignore
 // async function generateHourlyTrades(stockId, startDate, endDate) {
-//     const trades = [];
+//     const trades: any = [];
 //     const minPrice = 100;
 //     const maxPrice = 1000;
 //     const minVolume = 10;
@@ -80,17 +80,17 @@ app.use("/api/v1/markets", marketRouter);
 // // Main function to create the stock if it doesn't exist and generate trades
 // async function main() {
 //     let tataStock = await prisma.stock.findUnique({
-//         where: { symbol: "TATA" },
+//         where: { symbol: "HDFC" },
 //     });
 
 //     if (!tataStock) {
 //         tataStock = await prisma.stock.create({
 //             data: {
-//                 symbol: "TATA",
-//                 name: "Tata Group",
+//                 symbol: "HDFC",
+//                 name: "HDFC Bank",
 //                 market: "NSE",
-//                 industry: "Diversified",
-//                 outstandingShares: 5000000,
+//                 industry: "Banking",
+//                 outstandingShares: 6000000,
 //             },
 //         });
 //         console.log('Created Stock:', tataStock);

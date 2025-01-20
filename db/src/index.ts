@@ -6,17 +6,20 @@ const prisma = new PrismaClient();
 
 async function main() {
   const redisClient = createClient();
-  redisClient.on('error', (err) => {
-    console.error('Redis Connection Error:', err);
+  redisClient.on("error", (err) => {
+    console.error("Redis Connection Error:", err);
   });
-  
-  redisClient.on('connect', () => {
-    console.log('Connected to Redis');
+
+  redisClient.on("connect", () => {
+    console.log("Connected to Redis");
   });
-  
+
   // Debug log
-  console.log('Attempting to connect to Redis with config:', redisClient.options);
-  
+  console.log(
+    "Attempting to connect to Redis with config:",
+    redisClient.options
+  );
+
   try {
     await redisClient.connect();
     console.log("connected to redis");
@@ -55,8 +58,7 @@ async function main() {
               side: side.toUpperCase(),
             },
           });
-        }
-        else if (data.type === ORDER_UPDATE) {
+        } else if (data.type === ORDER_UPDATE) {
           console.log("ORDER_PLACED");
           console.log(data);
           const market = data.data.market;
@@ -73,7 +75,6 @@ async function main() {
           });
 
           const stockId = stock?.id;
-
 
           // const trade = await prisma.orderHistory.create({
           //   //@ts-ignore

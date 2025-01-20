@@ -54,10 +54,10 @@ export class Engine {
             const snapshotSnapshot = JSON.parse(snapshot.toString());
             this.orderBooks = snapshotSnapshot.orderBooks.map((o: any) => new Orderbook(o.baseAssets, o.bids, o.asks, o.lastTradeId, o.currentPrice));
             this.balances = new Map(snapshotSnapshot.balances);
-        } else {
-            this.orderBooks = [new Orderbook(`TATA`, [], [], 0, 0)];
+        }else{
             this.setBaseBalances();
         }
+
         setInterval(() => {
             this.saveSnapshot();
         }, 1000 * 3);
@@ -171,8 +171,16 @@ export class Engine {
             case GET_DEPTH:
                 try {
                     const market = message.data.market;
+                    const baseAsset = market.split("_")[0];
+
                     const orderbook = this.orderBooks.find(o => o.ticker() === market);
-                    if (!orderbook) {
+                    // if (!orderbook) {
+                    //     throw new Error("No orderbook found");
+                    //     this.orderBooks = [new Orderbook(baseAsset, [], [], 0, 0)];
+                    //     orderbook = this.orderBooks.find(o => o.ticker() === market);
+                    //     this.setBaseBalances();
+                    // }
+                    if(!orderbook) {
                         throw new Error("No orderbook found");
                     }
                     RedisManager.getInstance().sendToApi(clientId, {
@@ -250,6 +258,7 @@ export class Engine {
         const baseAsset = market.split("_")[0];
         const quoteAsset = market.split("_")[1];
 
+        console.log(orderbook, "===orderbook=====")
         if (!orderbook) {
             const newOrderbook = new Orderbook(baseAsset, [], [], 0, 0);
             this.addOrderbook(newOrderbook);  
@@ -260,30 +269,35 @@ export class Engine {
 
         const order: Order = {
             price: Number(price),
-            // price: Number(price),
             quantity: Number(quantity),
             orderId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             filled: 0,
             side,
             userId
         }
-        
+
         const { fills, executedQty } = orderbook ? orderbook.addOrder(order) : {fills: [], executedQty: 0};
 
         console.log(fills, "========fills========");
         // Add timestamp to each fill
         const timestamp = new Date().toISOString();
-        const fillsWithTimestamp = fills.map(fill => ({
-            ...fill,
-            timestamp
-        }));
+        let fillsWithTimestamp: any = null
+
+        if(fills && fills.length > 0){
+            fillsWithTimestamp = fills.map(fill => ({
+                ...fill,
+                timestamp
+            }));
+        }
 
         this.updateBalance(userId, baseAsset, quoteAsset, side, fills, executedQty);
 
         this.createDbTrades(fills, market, userId, side);
         this.updateDbOrders(order, executedQty, fills, market, userId);
         this.publishWsDepthUpdates(fills, price, side, market);
-        this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
+        if(fills){
+            this.publishWsTrades(fillsWithTimestamp, userId, market, baseAsset, side);
+        }
         this.publishTickerUpdate(market, price, fills);
         // this.publishWsTicker()
         
@@ -552,6 +566,11 @@ export class Engine {
     }
 
     checkAndLockFunds(baseAsset: string, quoteAsset: string, side: "buy" | "sell", userId: string, asset: string, price: string, quantity: string) {
+        const userBalances = this.balances.get(userId);
+        console.log(userBalances, "userBalances");
+        if (!userBalances) {
+            throw new Error(`User with ID ${userId} not found.`);
+        }    
         if (side === "buy") {
             if ((this.balances.get(userId)?.[quoteAsset]?.available || 0) < Number(quantity) * Number(price)) {
                 throw new Error("Insufficient funds");
@@ -594,6 +613,14 @@ export class Engine {
                 locked: 0
             },
             "TATA": {
+                available: 10000000,
+                locked: 0
+            },
+            "HDFC": {
+                available: 10000000,
+                locked: 0
+            },
+            "INFY": {
                 available: 10000000,
                 locked: 0
             }

@@ -358,6 +358,7 @@ export class Orderbook {
                 ...order,
                 quantity: order.quantity - order.filled,
             };
+            console.log(remainingOrder, "====bids")
             this.bids.push(remainingOrder);
 
             return { executedQty, fills };
@@ -373,6 +374,7 @@ export class Orderbook {
                 ...order,
                 quantity: order.quantity - order.filled,
             };
+            console.log(remainingOrder, "===asks")
             this.asks.push(remainingOrder);
     
             return { executedQty, fills };
