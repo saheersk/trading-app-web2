@@ -2,65 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { ChartManager } from "../utils/ChartManager";
 import { getKlines } from "../utils/httpClient";
 import { KLine } from "../utils/types";
-
-// export function TradeView({
-//   market,
-// }: {
-//   market: string;
-// }) {
-//   const chartRef = useRef<HTMLDivElement>(null);
-//   const chartManagerRef = useRef<ChartManager>(null);
-
-//   useEffect(() => {
-//     const init = async () => {
-//       let klineData: KLine[] = [];
-//       try {
-//         klineData = await getKlines(market, "1h", Math.floor((new Date().getTime() - 1000 * 60 * 60 * 24 * 7) / 1000), Math.floor(new Date().getTime() / 1000));
-//       } catch (e) { }
-
-//       if (chartRef) {
-//         if (chartManagerRef.current) {
-//           chartManagerRef.current.destroy();
-//         }
-//         console.log(klineData, 'kline in fe==============')
-
-//         const chartManager = new ChartManager(
-//           chartRef.current,
-//           [
-//             ...klineData?.map((x: any) => {
-//               const timestamp = new Date(x.timestamp).getTime();
-//               // console.log(timestamp, "===================timestamp");
-//               // console.log(x.close, "===================close");
-//               return {
-//                   close: parseFloat(x.close),
-//                   high: parseFloat(x.high),
-//                   low: parseFloat(x.low),
-//                   open: parseFloat(x.open),
-//                   volume: parseFloat(x.volume),
-//                   trades: x.trades,
-//                   timestamp, // Timestamp in milliseconds
-//               };
-//           })
-//         ].sort((a, b) => a.timestamp - b.timestamp) || [] ,
-//           {
-//             background: "#0e0f14",
-//             color: "white",
-//           }
-//         );
-//         //@ts-ignore
-//         chartManagerRef.current = chartManager;
-//       }
-//     };
-//     init();
-//   }, [market, chartRef]);
-
-//   return (
-//     <>
-//       <div ref={chartRef} style={{ height: "520px", width: "100%", marginTop: 4 }}></div>
-//     </>
-//   );
-// }
-
 import { SignalingManager } from "../utils/SignalingManager";
 
 export function TradeView({ market }: { market: string }) {
@@ -69,8 +10,10 @@ export function TradeView({ market }: { market: string }) {
   // const klineDataRef = useRef<KLine[]>([]);
   const klineDataRef = useRef<any>([]);
   const [klineTime, setKlineTime] = useState("1h");
+  const [loading, setLoading] = useState(false);
 
   const fetchInitialKlines = async () => {
+    setLoading(true);
     try {
       const klineData = await getKlines(
         market,
@@ -108,6 +51,8 @@ export function TradeView({ market }: { market: string }) {
       }
     } catch (error) {
       console.error("Failed to fetch Kline data:", error);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -238,6 +183,16 @@ export function TradeView({ market }: { market: string }) {
 
   return (
     <div className="w-full">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-20">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-4 h-4 rounded-full animate-bounce bg-blue-500"></div>
+            <div className="w-4 h-4 rounded-full animate-bounce bg-green-500"></div>
+            <div className="w-4 h-4 rounded-full animate-bounce bg-red-500"></div>
+          </div>
+
+        </div>
+      )}
       <div
         ref={chartRef}
         style={{ height: "520px", width: "100%" }} 
